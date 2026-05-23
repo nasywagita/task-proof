@@ -205,7 +205,16 @@ class JoinProjectScreen extends StatelessWidget {
               height: 56,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ProjectDetailOverviewScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ProjectDetailOverviewScreen(
+                    project: {
+                      'title': 'Joined Project',
+                      'deadline': 'TBD',
+                      'status': 'Active',
+                      'progress': 0.0,
+                      'progressText': '0%',
+                      'team': 'TBD'
+                    }
+                  )));
                 },
                 icon: const Icon(Icons.login, color: Color(0xFF006655)),
                 label: const Text(

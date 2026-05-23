@@ -15,13 +15,28 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true),
-      home: const TaskDetailScreen(),
+      home: const TaskDetailScreen(
+        task: {
+          'title': 'Test Task',
+          'deadline': 'Oct 30',
+          'status': 'In Progress'
+        }
+      ),
     );
   }
 }
 
-class TaskDetailScreen extends StatelessWidget {
-  const TaskDetailScreen({super.key});
+class TaskDetailScreen extends StatefulWidget {
+  final Map<String, dynamic> task;
+
+  const TaskDetailScreen({super.key, required this.task});
+
+  @override
+  State<TaskDetailScreen> createState() => _TaskDetailScreenState();
+}
+
+class _TaskDetailScreenState extends State<TaskDetailScreen> {
+  final List<Map<String, dynamic>> _progressHistory = [];
 
   @override
   Widget build(BuildContext context) {
@@ -69,10 +84,10 @@ class TaskDetailScreen extends StatelessWidget {
       bottomNavigationBar: const SharedBottomNavBar(currentIndex: 2),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        children: const [
-          TaskHeaderSection(),
-          SizedBox(height: 16),
-          DescriptionCard(),
+        children: [
+          TaskHeaderSection(task: widget.task),
+          const SizedBox(height: 16),
+          DescriptionCard(task: widget.task),
           SizedBox(height: 24),
           Text(
             'Progress History',
@@ -83,7 +98,7 @@ class TaskDetailScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 16),
-          ProgressTimelineSection(),
+          ProgressTimelineSection(history: _progressHistory),
         ],
       ),
 
@@ -91,11 +106,16 @@ class TaskDetailScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF13ECC8),
         foregroundColor: const Color(0xFF00382E),
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddProgressScreen()),
           );
+          if (result != null && result is Map<String, dynamic>) {
+            setState(() {
+              _progressHistory.insert(0, result);
+            });
+          }
         },
         child: const Icon(Icons.add, size: 28),
       ),
@@ -105,7 +125,9 @@ class TaskDetailScreen extends StatelessWidget {
 
 //--- SUB-WIDGET 1: HEADER JUDUL & META DATA ---
 class TaskHeaderSection extends StatelessWidget {
-  const TaskHeaderSection({super.key});
+  final Map<String, dynamic> task;
+
+  const TaskHeaderSection({super.key, required this.task});
 
   @override
   Widget build(BuildContext context) {
@@ -116,10 +138,10 @@ class TaskHeaderSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'UI Login Screen',
-                style: TextStyle(
+                task['title'] ?? 'Task Title',
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF161D1B),
@@ -143,9 +165,9 @@ class TaskHeaderSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  const Text(
-                    'In Progress',
-                    style: TextStyle(
+                  Text(
+                    task['status'] ?? 'To Do',
+                    style: const TextStyle(
                       color: Color(0xFF00382E),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -157,36 +179,36 @@ class TaskHeaderSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        const Row(
+        Row(
           children: [
-            Icon(Icons.person_outline, size: 16, color: Color(0xFF3F4946)),
-            SizedBox(width: 4),
-            Text(
+            const Icon(Icons.person_outline, size: 16, color: Color(0xFF3F4946)),
+            const SizedBox(width: 4),
+            const Text(
               'Assigned to: ',
               style: TextStyle(color: Color(0xFF3F4946), fontSize: 13),
             ),
             Text(
-              'Ilham',
+              task['assignee'] ?? 'Unassigned',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF161D1B),
                 fontSize: 13,
               ),
             ),
-            SizedBox(width: 24),
-            Icon(
+            const SizedBox(width: 24),
+            const Icon(
               Icons.calendar_today_outlined,
               size: 14,
               color: Color(0xFF3F4946),
             ),
-            SizedBox(width: 4),
-            Text(
+            const SizedBox(width: 4),
+            const Text(
               'Deadline: ',
               style: TextStyle(color: Color(0xFF3F4946), fontSize: 13),
             ),
             Text(
-              'Oct 30',
-              style: TextStyle(
+              task['deadline'] ?? 'No Deadline',
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF161D1B),
                 fontSize: 13,
@@ -201,7 +223,9 @@ class TaskHeaderSection extends StatelessWidget {
 
 //--- SUB-WIDGET 2: KARTU DESKRIPSI ---
 class DescriptionCard extends StatelessWidget {
-  const DescriptionCard({super.key});
+  final Map<String, dynamic> task;
+
+  const DescriptionCard({super.key, required this.task});
 
   @override
   Widget build(BuildContext context) {
@@ -219,10 +243,10 @@ class DescriptionCard extends StatelessWidget {
           ),
         ],
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Description',
             style: TextStyle(
               fontSize: 16,
@@ -230,11 +254,11 @@ class DescriptionCard extends StatelessWidget {
               color: Color(0xFF161D1B),
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            'Implement the new visual guidelines for the main login screen. Ensure all input fields use the updated MD3 floating label standards and the primary button reflects the new brand color. The layout must be fully responsive across mobile and desktop breakpoints following the 8px square grid.',
-            style: TextStyle(
-              color: const Color(0xFF3F4946),
+            task['description'] ?? 'No description provided for this task. Please add more details if needed.',
+            style: const TextStyle(
+              color: Color(0xFF3F4946),
               height: 1.45,
               fontSize: 14,
             ),
@@ -247,12 +271,57 @@ class DescriptionCard extends StatelessWidget {
 
 //--- SUB-WIDGET 3: TIMELINE HISTORY LIST ---
 class ProgressTimelineSection extends StatelessWidget {
-  const ProgressTimelineSection({super.key});
+  final List<Map<String, dynamic>> history;
+
+  const ProgressTimelineSection({super.key, required this.history});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Dynamic history
+        ...history.map((item) => _buildTimelineItem(
+          isActive: true,
+          statusBadge: _statusBadge(
+            'Under Review',
+            const Color(0x3313ECC8),
+            const Color(0xFF00382E),
+          ),
+          name: item['user'] ?? 'User',
+          date: item['time'] ?? 'Just now',
+          content: Text(
+            item['notes'] ?? '',
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: Color(0xFF161D1B)),
+          ),
+          extraChild: (item['link'] != null && item['link'].toString().isNotEmpty)
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Row(
+                    children: [
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          backgroundColor: const Color(0x0A006B58),
+                        ),
+                        icon: const Icon(
+                          Icons.link,
+                          size: 16,
+                          color: Color(0xFF006B58),
+                        ),
+                        label: const Text(
+                          'Attachment Link',
+                          style: TextStyle(color: Color(0xFF006B58), fontSize: 12),
+                        ),
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
+                )
+              : null,
+        )),
+
         // Card 1: Pending Review (Aktif)
         _buildTimelineItem(
           isActive: true,
@@ -459,7 +528,7 @@ class ProgressTimelineSection extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   content,
-                  if (extraChild != null) extraChild,
+                  ?extraChild,
                   if (bottomButtons != null) ...[
                     const SizedBox(height: 16),
                     bottomButtons,

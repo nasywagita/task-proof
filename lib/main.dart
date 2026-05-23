@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:task_proof/onboarding_screen.dart';
 
-void main() {
+import 'package:task_proof/app_state.dart';
+import 'package:task_proof/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppState.instance.init();
   runApp(const TaskProofApp());
 }
 
@@ -32,11 +38,20 @@ class _SplashScreenNeonTechState extends State<SplashScreenNeonTech> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () async {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-        );
+        final prefs = await SharedPreferences.getInstance();
+        final isRegistered = prefs.getBool('isRegistered') ?? false;
+
+        if (isRegistered) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+          );
+        }
       }
     });
   }
@@ -107,7 +122,7 @@ class _SplashScreenNeonTechState extends State<SplashScreenNeonTech> {
                     alignment: Alignment.center,
                     children: [
                       // Bentuk dasar 'T' berwarna Toska/Cyan
-                      Container(
+                      SizedBox(
                         width: 60,
                         height: 60,
                         child: Stack(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_proof/login.dart';
 import 'package:task_proof/dashboard.dart';
+import 'package:task_proof/app_state.dart';
 
 void main() {
   runApp(const RegisterApp());
@@ -35,6 +36,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // State untuk melacak role yang dipilih (true = Creator, false = Member)
   bool isCreatorSelected = true;
   bool isAgreed = false;
+  
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,6 +140,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           _buildTextField(
                             hint: 'John Doe',
                             icon: Icons.person_outline,
+                            controller: _nameController,
                           ),
                           const SizedBox(height: 16),
 
@@ -135,6 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           _buildTextField(
                             hint: 'name@company.com',
                             icon: Icons.mail_outline,
+                            controller: _emailController,
                           ),
                           const SizedBox(height: 16),
 
@@ -144,6 +159,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             hint: '••••••••',
                             icon: Icons.lock_outline,
                             isPassword: true,
+                            controller: _passwordController,
                           ),
                           const SizedBox(height: 20),
 
@@ -229,7 +245,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           // --- BUTTON: REGISTER ---
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
+                              final name = _nameController.text.trim();
+                              final email = _emailController.text.trim();
+                              final password = _passwordController.text;
+
+                              if (name.isEmpty || email.isEmpty || password.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please fill in all fields'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              await AppState.instance.setUserName(name);
+                              
+                              if (!mounted) return;
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
@@ -390,8 +423,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required String hint,
     required IconData icon,
     bool isPassword = false,
+    TextEditingController? controller,
   }) {
     return TextField(
+      controller: controller,
       obscureText: isPassword,
       decoration: InputDecoration(
         hintText: hint,

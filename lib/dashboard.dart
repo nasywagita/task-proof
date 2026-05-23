@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:task_proof/create_project.dart';
 import 'package:task_proof/join_project.dart';
 import 'package:task_proof/project_detail_overview.dart';
-import 'package:task_proof/task_detail.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
 import 'package:task_proof/project_list.dart';
+import 'package:task_proof/app_state.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,7 +14,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _currentIndex = 0;
+  final int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +33,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Hello, Alex!',
-                          style: TextStyle(
+                          'Hello, ${AppState.instance.userName}!',
+                          style: const TextStyle(
                             color: Color(0xFF0F172A),
                             fontSize: 28,
                             fontFamily: 'Inter',
@@ -44,8 +44,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             letterSpacing: -0.50,
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
+                        const SizedBox(height: 4),
+                        const Text(
                           'Ready to crush your goals today?',
                           style: TextStyle(
                             color: Color(0xFF4B4356),
@@ -63,7 +63,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         color: Color(0xFFE2E8F0),
                         shape: OvalBorder(),
                         image: DecorationImage(
-                          image: NetworkImage('https://placehold.co/100x100'),
+                          image: NetworkImage('https://i.pravatar.cc/100?img=33'),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -327,7 +327,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const ProjectDetailOverviewScreen()));
+        final Map<String, dynamic> projectData = {
+          'title': title,
+          'team': team,
+          'status': status,
+          'statusColor': statusColor,
+          'statusBg': statusBg,
+          'progress': progress,
+          'progressText': progressText,
+          'tasks': tasks,
+          'deadline': deadline,
+        };
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ProjectDetailOverviewScreen(project: projectData)));
       },
       child: Container(
         width: double.infinity,
@@ -355,45 +366,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: ShapeDecoration(
-                        color: iconBg,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: Center(
-                        child: Icon(Icons.folder, color: iconColor, size: 20),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: Color(0xFF141B2B),
-                            fontSize: 14,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w600,
-                          ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: ShapeDecoration(
+                          color: iconBg,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          team,
-                          style: const TextStyle(
-                            color: Color(0xFF4B4356),
-                            fontSize: 12,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w400,
-                          ),
+                        child: Center(
+                          child: Icon(Icons.folder, color: iconColor, size: 20),
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF141B2B),
+                                fontSize: 14,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              team,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF4B4356),
+                                fontSize: 12,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

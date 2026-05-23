@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
-import 'package:task_proof/app_state.dart';
 import 'package:task_proof/join_project.dart';
 import 'package:task_proof/project_detail_overview.dart';
 import 'package:task_proof/create_project.dart';
@@ -342,17 +341,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: _buildProjectCard(
-                          title: project['title'],
-                          team: project['team'],
-                          status: project['status'],
-                          statusColor: project['statusColor'],
-                          statusBg: project['statusBg'],
-                          progress: project['progress'],
-                          progressText: project['progressText'],
-                          tasks: project['tasks'],
-                          deadline: project['deadline'],
-                          iconBg: project['iconBg'],
-                          iconColor: project['iconColor'],
+                          project: project,
                         ),
                       );
                     },
@@ -409,23 +398,27 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   }
 
   Widget _buildProjectCard({
-    required String title,
-    required String team,
-    required String status,
-    required Color statusColor,
-    required Color statusBg,
-    required double progress,
-    required String progressText,
-    required String tasks,
-    required String deadline,
-    required Color iconBg,
-    required Color iconColor,
+    required Map<String, dynamic> project,
   }) {
+    final title = project['title'] as String;
+    final team = project['team'] as String;
+    final status = project['status'] as String;
+    final statusColor = project['statusColor'] as Color;
+    final statusBg = project['statusBg'] as Color;
+    final progress = project['progress'] as double;
+    final progressText = project['progressText'] as String;
+    final tasks = project['tasks'] as String;
+    final deadline = project['deadline'] as String;
+    final iconBg = project['iconBg'] as Color;
+    final iconColor = project['iconColor'] as Color;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ProjectDetailOverviewScreen()),
+          MaterialPageRoute(
+            builder: (context) => ProjectDetailOverviewScreen(project: project),
+          ),
         );
       },
       child: Container(
@@ -451,45 +444,53 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: ShapeDecoration(
-                        color: iconBg,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: Center(
-                        child: Icon(Icons.folder_rounded, color: iconColor, size: 20),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: Color(0xFF141B2B),
-                            fontSize: 14,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w700,
-                          ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: ShapeDecoration(
+                          color: iconBg,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          team,
-                          style: const TextStyle(
-                            color: Color(0xFF4B4356),
-                            fontSize: 12,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w400,
-                          ),
+                        child: Center(
+                          child: Icon(Icons.folder_rounded, color: iconColor, size: 20),
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF141B2B),
+                                fontSize: 14,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              team,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF4B4356),
+                                fontSize: 12,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

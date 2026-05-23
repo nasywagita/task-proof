@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:task_proof/dashboard.dart';
 import 'package:task_proof/join_project.dart';
 import 'package:task_proof/project_detail_overview.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
@@ -310,7 +309,16 @@ class _CreateJoinProjectBodyState extends State<CreateJoinProjectBody> {
               elevation: 2,
             ),
             onPressed: () {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProjectDetailOverviewScreen()));
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProjectDetailOverviewScreen(
+                project: {
+                  'title': 'New Project',
+                  'deadline': 'TBD',
+                  'status': 'Planning',
+                  'progress': 0.0,
+                  'progressText': '0%',
+                  'team': 'TBD'
+                }
+              )));
             },
             child: const Text(
               'Create Project',

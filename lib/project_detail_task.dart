@@ -6,11 +6,22 @@ import 'package:task_proof/task_detail.dart';
 import 'package:task_proof/add_task.dart';
 
 void main() {
-  runApp(const ProjectDetailTaskScreen());
+  runApp(MaterialApp(
+    home: const ProjectDetailTaskScreen(project: {
+      'title': 'Test Project',
+      'deadline': 'TBD',
+      'status': 'Testing',
+      'progress': 0.0,
+      'progressText': '0%',
+      'team': 'Test Team'
+    }),
+  ));
 }
 
 class ProjectDetailTaskScreen extends StatefulWidget {
-  const ProjectDetailTaskScreen({super.key});
+  final Map<String, dynamic> project;
+
+  const ProjectDetailTaskScreen({super.key, required this.project});
 
   @override
   State<ProjectDetailTaskScreen> createState() => _ProjectDetailTaskScreenState();
@@ -71,7 +82,7 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
               onPressed: () {},
             ),
           ],
-          bottom: const TaskDetailTabBar(),
+          bottom: TaskDetailTabBar(project: widget.project),
         ),
         bottomNavigationBar: const SharedBottomNavBar(currentIndex: 1),
         floatingActionButton: FloatingActionButton(
@@ -101,7 +112,7 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
         body: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            const ProjectCardHeader(),
+            ProjectCardHeader(project: widget.project),
             const SizedBox(height: 24),
             
             // Task List Section
@@ -141,6 +152,12 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
     required String deadline,
     required String status,
   }) {
+    final Map<String, dynamic> task = {
+      'title': title,
+      'deadline': deadline,
+      'status': status,
+    };
+
     Color statusColor;
     Color statusBgColor;
 
@@ -166,7 +183,7 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const TaskDetailScreen()),
+          MaterialPageRoute(builder: (context) => TaskDetailScreen(task: task)),
         );
       },
       child: Container(
@@ -250,7 +267,9 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
 }
 
 class TaskDetailTabBar extends StatelessWidget implements PreferredSizeWidget {
-  const TaskDetailTabBar({super.key});
+  final Map<String, dynamic> project;
+
+  const TaskDetailTabBar({super.key, required this.project});
 
   @override
   Size get preferredSize => const Size.fromHeight(48);
@@ -275,11 +294,11 @@ class TaskDetailTabBar extends StatelessWidget implements PreferredSizeWidget {
       onTap: () {
         if (isActive) return;
         if (title == 'Task') {
-          Navigator.pushReplacement(context, FadeRoute(page: const ProjectDetailTaskScreen()));
+          Navigator.pushReplacement(context, FadeRoute(page: ProjectDetailTaskScreen(project: project)));
         } else if (title == 'Timeline') {
-          Navigator.pushReplacement(context, FadeRoute(page: const ProjectDetailTimelineScreen()));
+          Navigator.pushReplacement(context, FadeRoute(page: ProjectDetailTimelineScreen(project: project)));
         } else if (title == 'Overview') {
-          Navigator.pushReplacement(context, FadeRoute(page: const ProjectDetailOverviewScreen()));
+          Navigator.pushReplacement(context, FadeRoute(page: ProjectDetailOverviewScreen(project: project)));
         }
       },
       child: Container(

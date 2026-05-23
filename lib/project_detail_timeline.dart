@@ -4,11 +4,20 @@ import 'package:task_proof/project_detail_overview.dart';
 import 'package:task_proof/project_detail_task.dart';
 
 void main() {
-  runApp(const MaterialApp(home: ProjectDetailTimelineScreen()));
+  runApp(const MaterialApp(home: ProjectDetailTimelineScreen(project: {
+    'title': 'Test Project',
+    'deadline': 'TBD',
+    'status': 'Testing',
+    'progress': 0.0,
+    'progressText': '0%',
+    'team': 'Test Team'
+  })));
 }
 
 class ProjectDetailTimelineScreen extends StatelessWidget {
-  const ProjectDetailTimelineScreen({super.key});
+  final Map<String, dynamic> project;
+
+  const ProjectDetailTimelineScreen({super.key, required this.project});
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +49,13 @@ class ProjectDetailTimelineScreen extends StatelessWidget {
               onPressed: () {},
             ),
           ],
-          bottom: const TimelineDetailTabBar(),
+          bottom: TimelineDetailTabBar(project: project),
         ),
         bottomNavigationBar: const SharedBottomNavBar(currentIndex: 1),
         body: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            const ProjectCardHeader(),
+            ProjectCardHeader(project: project),
             const SizedBox(height: 24),
 
             // Timeline Card / Activity Section
@@ -233,7 +242,9 @@ class ProjectDetailTimelineScreen extends StatelessWidget {
 }
 
 class TimelineDetailTabBar extends StatelessWidget implements PreferredSizeWidget {
-  const TimelineDetailTabBar({super.key});
+  final Map<String, dynamic> project;
+
+  const TimelineDetailTabBar({super.key, required this.project});
 
   @override
   Size get preferredSize => const Size.fromHeight(48);
@@ -258,11 +269,11 @@ class TimelineDetailTabBar extends StatelessWidget implements PreferredSizeWidge
       onTap: () {
         if (isActive) return;
         if (title == 'Task') {
-          Navigator.pushReplacement(context, FadeRoute(page: const ProjectDetailTaskScreen()));
+          Navigator.pushReplacement(context, FadeRoute(page: ProjectDetailTaskScreen(project: project)));
         } else if (title == 'Timeline') {
-          Navigator.pushReplacement(context, FadeRoute(page: const ProjectDetailTimelineScreen()));
+          Navigator.pushReplacement(context, FadeRoute(page: ProjectDetailTimelineScreen(project: project)));
         } else if (title == 'Overview') {
-          Navigator.pushReplacement(context, FadeRoute(page: const ProjectDetailOverviewScreen()));
+          Navigator.pushReplacement(context, FadeRoute(page: ProjectDetailOverviewScreen(project: project)));
         }
       },
       child: Container(

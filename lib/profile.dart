@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
 import 'package:task_proof/login.dart';
+import 'package:task_proof/app_state.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -10,8 +11,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Local state for username and email
-  String _username = 'Alex';
+  // Local state for email, but username comes from AppState
   String _email = 'alex@company.com';
 
   // Controllers for the edit dialog
@@ -21,7 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _usernameController = TextEditingController(text: _username);
+    _usernameController = TextEditingController(text: AppState.instance.userName);
     _emailController = TextEditingController(text: _email);
   }
 
@@ -35,7 +35,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Beautiful dialog for Personal Information modification
   void _showPersonalInformationDialog(BuildContext context) {
     // Reset controllers to current state values when showing
-    _usernameController.text = _username;
+    // Reset controllers to current state values when showing
+    _usernameController.text = AppState.instance.userName;
     _emailController.text = _email;
 
     showDialog(
@@ -146,10 +147,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      final newName = _usernameController.text.trim();
+                      if (newName.isNotEmpty) {
+                        await AppState.instance.setUserName(newName);
+                      }
                       setState(() {
-                        _username = _usernameController.text.trim();
-                        _email = _emailController.text.trim();
+                        _email = _emailController.text;
                       });
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -247,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      _username,
+                      AppState.instance.userName,
                       style: const TextStyle(
                         color: Color(0xFF141B2B),
                         fontSize: 24,

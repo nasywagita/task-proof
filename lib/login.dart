@@ -11,6 +11,15 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool isRememberMe = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     _buildTextField(
                       hint: 'name@company.com',
                       icon: Icons.mail_outline,
+                      controller: _emailController,
                     ),
 
                     const SizedBox(height: 16),
@@ -119,6 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       hint: 'Enter your password',
                       icon: Icons.lock_outline,
                       isPassword: true,
+                      controller: _passwordController,
                     ),
 
                     const SizedBox(height: 16),
@@ -160,6 +171,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     // LOGIN BUTTON
                     ElevatedButton(
                       onPressed: () {
+                        if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please enter your email and password'),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                          return;
+                        }
+
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
@@ -324,8 +345,10 @@ class _LoginScreenState extends State<LoginScreen> {
     required String hint,
     required IconData icon,
     bool isPassword = false,
+    TextEditingController? controller,
   }) {
     return TextField(
+      controller: controller,
       obscureText: isPassword,
       decoration: InputDecoration(
         hintText: hint,

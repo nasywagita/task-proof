@@ -16,13 +16,22 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true),
-      home: const ProjectDetailOverviewScreen(),
+      home: const ProjectDetailOverviewScreen(project: {
+        'title': 'Test Project',
+        'deadline': 'TBD',
+        'status': 'Testing',
+        'progress': 0.0,
+        'progressText': '0%',
+        'team': 'Test Team'
+      }),
     );
   }
 }
 
 class ProjectDetailOverviewScreen extends StatelessWidget {
-  const ProjectDetailOverviewScreen({super.key});
+  final Map<String, dynamic> project;
+
+  const ProjectDetailOverviewScreen({super.key, required this.project});
 
   @override
   Widget build(BuildContext context) {
@@ -49,22 +58,22 @@ class ProjectDetailOverviewScreen extends StatelessWidget {
             onPressed: () {},
           ),
         ],
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(48),
-          child: CustomTabBar(),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: CustomTabBar(project: project),
         ),
       ),
       bottomNavigationBar: const SharedBottomNavBar(currentIndex: 1),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
-        children: const [
-          ProjectCardHeader(),
-          SizedBox(height: 16),
-          TeamCardSection(),
-          SizedBox(height: 16),
-          ProgressCardSection(),
-          SizedBox(height: 16),
-          JoinCodeCardSection(),
+        children: [
+          ProjectCardHeader(project: project),
+          const SizedBox(height: 16),
+          const TeamCardSection(),
+          const SizedBox(height: 16),
+          ProgressCardSection(project: project),
+          const SizedBox(height: 16),
+          const JoinCodeCardSection(),
         ],
       ),
     );
@@ -73,7 +82,9 @@ class ProjectDetailOverviewScreen extends StatelessWidget {
 
 //--- SUB-WIDGET 1: TAB BAR ATAS ---
 class CustomTabBar extends StatelessWidget {
-  const CustomTabBar({super.key});
+  final Map<String, dynamic> project;
+
+  const CustomTabBar({super.key, required this.project});
 
   @override
   Widget build(BuildContext context) {
@@ -95,11 +106,11 @@ class CustomTabBar extends StatelessWidget {
       onTap: () {
         if (isActive) return;
         if (title == 'Task') {
-          Navigator.pushReplacement(context, FadeRoute(page: const ProjectDetailTaskScreen()));
+          Navigator.pushReplacement(context, FadeRoute(page: ProjectDetailTaskScreen(project: project)));
         } else if (title == 'Timeline') {
-          Navigator.pushReplacement(context, FadeRoute(page: const ProjectDetailTimelineScreen()));
+          Navigator.pushReplacement(context, FadeRoute(page: ProjectDetailTimelineScreen(project: project)));
         } else if (title == 'Overview') {
-          Navigator.pushReplacement(context, FadeRoute(page: const ProjectDetailOverviewScreen()));
+          Navigator.pushReplacement(context, FadeRoute(page: ProjectDetailOverviewScreen(project: project)));
         }
       },
       child: Container(
@@ -126,7 +137,9 @@ class CustomTabBar extends StatelessWidget {
 
 //--- SUB-WIDGET 2: KARTU DETIL UTAMA ---
 class ProjectCardHeader extends StatelessWidget {
-  const ProjectCardHeader({super.key});
+  final Map<String, dynamic> project;
+
+  const ProjectCardHeader({super.key, required this.project});
 
   @override
   Widget build(BuildContext context) {
@@ -171,27 +184,27 @@ class ProjectCardHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Mobile App Redesign',
-            style: TextStyle(
+          Text(
+            project['title'] ?? 'Project Title',
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Color(0xFF161D1B),
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Refreshing the UX for the Task Proof Android app. Focusing on performance improvements and modernizing the visual language to align with MD3 standards.',
-            style: TextStyle(
+          Text(
+            project['description'] ?? 'Refreshing the UX for the Task Proof Android app. Focusing on performance improvements and modernizing the visual language to align with MD3 standards.',
+            style: const TextStyle(
               color: Color(0xFF414947),
               height: 1.4,
               fontSize: 13,
             ),
           ),
           const SizedBox(height: 16),
-          _tagBadge(Icons.calendar_today_outlined, 'Due Oct 30, 2023'),
+          _tagBadge(Icons.calendar_today_outlined, 'Due ${project['deadline'] ?? ''}'),
           const SizedBox(height: 8),
-          _tagBadge(Icons.flag_outlined, 'High Priority'),
+          _tagBadge(Icons.flag_outlined, project['status'] ?? 'Active'),
         ],
       ),
     );
@@ -308,7 +321,9 @@ class TeamCardSection extends StatelessWidget {
 
 //--- SUB-WIDGET 4: SECTION PROGRESS (LINGKARAN PERSENTASE) ---
 class ProgressCardSection extends StatelessWidget {
-  const ProgressCardSection({super.key});
+  final Map<String, dynamic> project;
+
+  const ProgressCardSection({super.key, required this.project});
 
   @override
   Widget build(BuildContext context) {
@@ -345,16 +360,16 @@ class ProgressCardSection extends StatelessWidget {
                   width: 120,
                   height: 120,
                   child: CircularProgressIndicator(
-                    value: 0.75,
+                    value: project['progress'] as double? ?? 0.0,
                     strokeWidth: 12,
                     backgroundColor: const Color(0xFFE8EFEC),
                     color: const Color(0xFF006B58),
                     strokeCap: StrokeCap.round,
                   ),
                 ),
-                const Text(
-                  '75%',
-                  style: TextStyle(
+                Text(
+                  project['progressText'] ?? '0%',
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF161D1B),

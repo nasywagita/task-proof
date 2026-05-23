@@ -259,7 +259,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const TaskDetailScreen(),
+                        builder: (context) => TaskDetailScreen(task: task),
                       ),
                     );
                   },
@@ -313,7 +313,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 if (!isLast) const Divider(height: 1, color: Color(0xFFF3FBF7)),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );

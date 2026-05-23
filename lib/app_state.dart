@@ -1,7 +1,7 @@
 // app_state.dart
 // Simple singleton to hold shared app data (user info, projects, tasks).
 
-import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppState {
   // Private constructor for singleton.
@@ -38,8 +38,17 @@ class AppState {
     },
   ];
 
-  // Helper to update user name.
-  void setUserName(String name) {
+  // Helper to update user name and save it.
+  Future<void> setUserName(String name) async {
     userName = name;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userName', name);
+    await prefs.setBool('isRegistered', true);
+  }
+
+  // Load user name and registration status on startup.
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    userName = prefs.getString('userName') ?? 'User';
   }
 }
