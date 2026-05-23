@@ -25,7 +25,7 @@ EdgeInsets responsivePadding(BuildContext context) {
 
 // Scaled font size utility.
 double scaledFontSize(BuildContext context, double baseSize) {
-  double width = MediaQuery.of(context).size.width;
+  
   if (isDesktop(context)) {
     return baseSize * 1.2;
   } else if (isTablet(context)) {

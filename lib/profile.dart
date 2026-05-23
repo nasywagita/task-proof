@@ -392,7 +392,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 14,
-              color: isDanger ? const Color(0xFFFF5252).withOpacity(0.5) : const Color(0xFF64748B).withOpacity(0.5),
+              color: isDanger ? const Color(0xFFFF5252).withValues(alpha: 0.5) : const Color(0xFF64748B).withValues(alpha: 0.5),
             ),
           ],
         ),

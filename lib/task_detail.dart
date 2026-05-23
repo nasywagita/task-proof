@@ -506,7 +506,7 @@ class ProgressTimelineSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isActive
                     ? Colors.white
-                    : const Color(0xFFEDF6F1).withOpacity(0.7),
+                    : const Color(0xFFEDF6F1).withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFFDAE5E1)),
               ),

@@ -74,8 +74,8 @@ class _SplashScreenNeonTechState extends State<SplashScreenNeonTech> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF13ECC8).withOpacity(0.25),
-                    const Color(0xFF13ECC8).withOpacity(0.0),
+                    const Color(0xFF13ECC8).withValues(alpha: 0.25),
+                    const Color(0xFF13ECC8).withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -92,8 +92,8 @@ class _SplashScreenNeonTechState extends State<SplashScreenNeonTech> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFDCE2F7).withOpacity(0.4),
-                    const Color(0xFFDCE2F7).withOpacity(0.0),
+                    const Color(0xFFDCE2F7).withValues(alpha: 0.4),
+                    const Color(0xFFDCE2F7).withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -111,7 +111,7 @@ class _SplashScreenNeonTechState extends State<SplashScreenNeonTech> {
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF13ECC8).withOpacity(0.6),
+                      color: const Color(0xFF13ECC8).withValues(alpha: 0.6),
                       blurRadius: 40,
                       spreadRadius: 10,
                     ),
@@ -161,7 +161,7 @@ class _SplashScreenNeonTechState extends State<SplashScreenNeonTech> {
                                 width: 16,
                                 height: 22,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                   borderRadius: const BorderRadius.only(
                                     topRight: Radius.circular(8),
                                     bottomRight: Radius.circular(8),
