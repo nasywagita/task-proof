@@ -11,8 +11,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Local state for email, but username comes from AppState
-  String _email = 'alex@company.com';
+  // Local state for email, initialized from AppState
+  late String _email;
 
   // Controllers for the edit dialog
   late TextEditingController _usernameController;
@@ -21,6 +21,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _email = AppState.instance.userEmail.isNotEmpty
+        ? AppState.instance.userEmail
+        : 'user@company.com';
     _usernameController = TextEditingController(text: AppState.instance.userName);
     _emailController = TextEditingController(text: _email);
   }
@@ -149,11 +152,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: ElevatedButton(
                     onPressed: () async {
                       final newName = _usernameController.text.trim();
+                      final newEmail = _emailController.text.trim();
                       if (newName.isNotEmpty) {
                         await AppState.instance.setUserName(newName);
                       }
+                      if (newEmail.isNotEmpty) {
+                        await AppState.instance.setUserEmail(newEmail);
+                      }
                       setState(() {
-                        _email = _emailController.text;
+                        _email = newEmail;
                       });
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -261,9 +268,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Project Administrator',
-                      style: TextStyle(
+                    Text(
+                      AppState.instance.userRole.isNotEmpty
+                          ? AppState.instance.userRole
+                          : 'Project Administrator',
+                      style: const TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 14,
                         fontFamily: 'Inter',

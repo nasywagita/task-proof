@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:task_proof/dashboard.dart';
 import 'package:task_proof/create_project.dart';
-import 'package:task_proof/project_detail_overview.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
+import 'package:task_proof/app_state.dart';
 
 void main() {
   runApp(
@@ -13,8 +12,21 @@ void main() {
   );
 }
 
-class JoinProjectScreen extends StatelessWidget {
+class JoinProjectScreen extends StatefulWidget {
   const JoinProjectScreen({super.key});
+
+  @override
+  State<JoinProjectScreen> createState() => _JoinProjectScreenState();
+}
+
+class _JoinProjectScreenState extends State<JoinProjectScreen> {
+  final TextEditingController _codeController = TextEditingController();
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +41,7 @@ class JoinProjectScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF151D1B)),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const DashboardScreen()),
-            );
+            Navigator.pop(context);
           },
         ),
         title: const Text(
@@ -135,8 +144,11 @@ class JoinProjectScreen extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            // INPUT
+             // INPUT
             TextField(
+              controller: _codeController,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 28,
@@ -145,6 +157,7 @@ class JoinProjectScreen extends StatelessWidget {
                 color: Color(0xFF6A7B75),
               ),
               decoration: InputDecoration(
+                counterText: '',
                 hintText: 'E.G. 123456',
                 hintStyle: const TextStyle(
                   fontSize: 28,
@@ -205,16 +218,47 @@ class JoinProjectScreen extends StatelessWidget {
               height: 56,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ProjectDetailOverviewScreen(
-                    project: {
-                      'title': 'Joined Project',
-                      'deadline': 'TBD',
-                      'status': 'Active',
-                      'progress': 0.0,
-                      'progressText': '0%',
-                      'team': 'TBD'
-                    }
-                  )));
+                  final code = _codeController.text.trim();
+                  if (code.length != 6) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter a valid 6-digit project code'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final joinedProject = {
+                    'title': 'Project $code',
+                    'description': 'Collaborating on Project $code.',
+                    'due': 'Dec 25, 2026',
+                    'team': 'Collaborator Team',
+                    'status': 'ON TRACK',
+                    'statusColor': const Color(0xFF13ECC8),
+                    'statusBg': const Color(0x2613ECC8),
+                    'progress': 0.1,
+                    'progressText': '10%',
+                    'tasks': '4 Tasks',
+                    'deadline': 'Dec 25',
+                    'iconBg': const Color(0xFFE2F7ED),
+                    'iconColor': const Color(0xFF10B981),
+                    'isBordered': false,
+                  };
+
+                  // Add to AppState list
+                  AppState.instance.projects.add(joinedProject);
+
+                  // Show success SnackBar
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Joined Project $code successfully!'),
+                      backgroundColor: const Color(0xFF006B59),
+                    ),
+                  );
+
+                  // Pop and return the project
+                  Navigator.pop(context, joinedProject);
                 },
                 icon: const Icon(Icons.login, color: Color(0xFF006655)),
                 label: const Text(

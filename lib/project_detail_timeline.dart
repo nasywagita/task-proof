@@ -44,9 +44,25 @@ class ProjectDetailTimelineScreen extends StatelessWidget {
             ),
           ),
           actions: [
-            IconButton(
+            PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, color: Color(0xFF006B58)),
-              onPressed: () {},
+              onSelected: (value) {
+                if (value == 'delete') {
+                  showDeleteProjectDialog(context, project);
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                      SizedBox(width: 8),
+                      Text('Delete Project', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
           bottom: TimelineDetailTabBar(project: project),

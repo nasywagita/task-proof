@@ -53,9 +53,36 @@ class _AddProgressScreenState extends State<AddProgressScreen> {
           ),
         ),
         actions: [
-          const CircleAvatar(
-            radius: 16,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/100?img=33'),
+          Container(
+            width: 32,
+            height: 32,
+            padding: const EdgeInsets.all(1.5),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x3313ECC8),
+                  blurRadius: 6,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(0.5),
+              decoration: const BoxDecoration(
+                color: Color(0xFF13ECC8),
+                shape: BoxShape.circle,
+              ),
+              child: const CircleAvatar(
+                backgroundColor: Color(0xFFEDF6F1),
+                child: Icon(
+                  Icons.person_rounded,
+                  size: 16,
+                  color: Color(0xFF006B58),
+                ),
+              ),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Color(0xFF006B58)),

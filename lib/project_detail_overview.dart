@@ -3,6 +3,7 @@ import 'package:task_proof/shared_bottom_nav.dart';
 import 'package:task_proof/project_detail_task.dart';
 import 'package:task_proof/project_detail_timeline.dart';
 import 'package:task_proof/project_list.dart';
+import 'package:task_proof/app_state.dart';
 
 void main() {
   runApp(const MyApp());
@@ -53,9 +54,25 @@ class ProjectDetailOverviewScreen extends StatelessWidget {
           ),
         ),
         actions: [
-          IconButton(
+          PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Color(0xFF006B58)),
-            onPressed: () {},
+            onSelected: (value) {
+              if (value == 'delete') {
+                showDeleteProjectDialog(context, project);
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                    SizedBox(width: 8),
+                    Text('Delete Project', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
         bottom: PreferredSize(
@@ -180,7 +197,14 @@ class ProjectCardHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              const Icon(Icons.delete_outline, color: Color(0xFF006B58)),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: const Icon(Icons.delete_outline, color: Color(0xFF006B58)),
+                onPressed: () {
+                  showDeleteProjectDialog(context, project);
+                },
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -235,6 +259,91 @@ class ProjectCardHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+void showDeleteProjectDialog(BuildContext context, Map<String, dynamic> project) {
+  showDialog(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: Color(0xFFFF5252)),
+            SizedBox(width: 8),
+            Text(
+              'Delete Project',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF161D1B),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "${project['title'] ?? 'this project'}"? This action cannot be undone and will permanently delete all tasks.',
+          style: const TextStyle(color: Color(0xFF3F4946), fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF3F4946))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF5252),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              AppState.instance.projects.removeWhere(
+                (p) => p['title'] == project['title'],
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: const Color(0xFF141B2B),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.all(16),
+                  content: Row(
+                    children: [
+                      const Icon(Icons.delete, color: Color(0xFFFF8A8A)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Project "${project['title']}" deleted successfully.',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+
+              Navigator.pop(context, {
+                'action': 'delete',
+                'title': project['title'],
+              });
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 //--- SUB-WIDGET 3: SECTION TEAM (AMBIL AVATAR AMAN) ---

@@ -14,6 +14,37 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final List<Map<String, dynamic>> _dashboardProjects = [
+    {
+      'title': 'Mobile App Redesign',
+      'team': 'Design Team',
+      'status': 'ON TRACK',
+      'statusColor': const Color(0xFF13ECC8),
+      'statusBg': const Color(0x1A13ECC8),
+      'progress': 0.75,
+      'progressText': '75%',
+      'tasks': '12 Tasks',
+      'deadline': 'Oct 30',
+      'iconBg': const Color(0xFFDCE2F7),
+      'iconColor': const Color(0xFF5E7FE5),
+      'isBordered': false,
+    },
+    {
+      'title': 'Q4 Marketing Campaign',
+      'team': 'Marketing Dept',
+      'status': 'PLANNING',
+      'statusColor': const Color(0xFF3B82F6),
+      'statusBg': const Color(0x1A3B82F6),
+      'progress': 0.15,
+      'progressText': '15%',
+      'tasks': '24 Tasks',
+      'deadline': 'Nov 15',
+      'iconBg': const Color(0xFFFFEBEB),
+      'iconColor': const Color(0xFFFF5252),
+      'isBordered': true,
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,40 +60,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hello, ${AppState.instance.userName}!',
-                          style: const TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 28,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.50,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hello, ${AppState.instance.userName}!',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontSize: 28,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.50,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Ready to crush your goals today?',
-                          style: TextStyle(
-                            color: Color(0xFF4B4356),
-                            fontSize: 14,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w400,
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Ready to crush your goals today?',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Color(0xFF4B4356),
+                              fontSize: 14,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 16),
                     Container(
                       width: 48,
                       height: 48,
-                      decoration: const ShapeDecoration(
-                        color: Color(0xFFE2E8F0),
-                        shape: OvalBorder(),
-                        image: DecorationImage(
-                          image: NetworkImage('https://i.pravatar.cc/100?img=33'),
-                          fit: BoxFit.cover,
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x3313ECC8),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(1),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF13ECC8),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const CircleAvatar(
+                          backgroundColor: Color(0xFFEDF6F1),
+                          child: Icon(
+                            Icons.person_rounded,
+                            size: 24,
+                            color: Color(0xFF006B58),
+                          ),
                         ),
                       ),
                     ),
@@ -92,8 +149,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
+                         children: [
+                          const Text(
                             'TOTAL PROJECTS',
                             style: TextStyle(
                               color: Color(0xFF64748B),
@@ -103,10 +160,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               letterSpacing: 0.50,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            '5',
-                            style: TextStyle(
+                            '${_dashboardProjects.length}',
+                            style: const TextStyle(
                               color: Color(0xFF13ECC8),
                               fontSize: 48,
                               fontFamily: 'Inter',
@@ -170,8 +227,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateProjectScreen()));
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const CreateProjectScreen()),
+                          );
+                          if (result != null && result is Map<String, dynamic>) {
+                            setState(() {
+                              _dashboardProjects.insert(0, result);
+                            });
+                          }
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -205,8 +270,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const JoinProjectScreen()));
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const JoinProjectScreen()),
+                          );
+                          if (result != null && result is Map<String, dynamic>) {
+                            setState(() {
+                              _dashboardProjects.insert(0, result);
+                            });
+                          }
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -267,38 +340,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Mobile App Redesign Card
-                _buildProjectCard(
-                  title: 'Mobile App Redesign',
-                  team: 'Design Team',
-                  status: 'ON TRACK',
-                  statusColor: const Color(0xFF13ECC8),
-                  statusBg: const Color(0x1A13ECC8),
-                  progress: 0.75,
-                  progressText: '75%',
-                  tasks: '12 Tasks',
-                  deadline: 'Oct 30',
-                  iconBg: const Color(0xFFDCE2F7),
-                  iconColor: const Color(0xFF5E7FE5),
-                  isBordered: false,
-                ),
-                const SizedBox(height: 16),
-
-                // Q4 Marketing Campaign Card
-                _buildProjectCard(
-                  title: 'Q4 Marketing Campaign',
-                  team: 'Marketing Dept',
-                  status: 'PLANNING',
-                  statusColor: const Color(0xFF3B82F6),
-                  statusBg: const Color(0x1A3B82F6),
-                  progress: 0.15,
-                  progressText: '15%',
-                  tasks: '24 Tasks',
-                  deadline: 'Nov 15',
-                  iconBg: const Color(0xFFFFEBEB),
-                  iconColor: const Color(0xFFFF5252),
-                  isBordered: true,
-                ),
+                // Render dashboard projects dynamically
+                ..._dashboardProjects.map((p) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: _buildProjectCard(
+                    title: p['title'],
+                    team: p['team'],
+                    status: p['status'],
+                    statusColor: p['statusColor'],
+                    statusBg: p['statusBg'],
+                    progress: p['progress'],
+                    progressText: p['progressText'],
+                    tasks: p['tasks'],
+                    deadline: p['deadline'],
+                    iconBg: p['iconBg'],
+                    iconColor: p['iconColor'],
+                    isBordered: p['isBordered'],
+                  ),
+                )),
                 const SizedBox(height: 32),
               ],
             ),
@@ -324,7 +383,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required bool isBordered,
   }) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         final Map<String, dynamic> projectData = {
           'title': title,
           'team': team,
@@ -336,7 +395,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'tasks': tasks,
           'deadline': deadline,
         };
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ProjectDetailOverviewScreen(project: projectData)));
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProjectDetailOverviewScreen(project: projectData)),
+        );
+        if (result != null && result is Map<String, dynamic> && result['action'] == 'delete') {
+          setState(() {
+            _dashboardProjects.removeWhere((p) => p['title'] == result['title']);
+          });
+        }
       },
       child: Container(
         width: double.infinity,

@@ -261,6 +261,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               }
 
                               await AppState.instance.setUserName(name);
+                              await AppState.instance.setUserEmail(email);
+                              await AppState.instance.setUserRole(isCreatorSelected ? 'Project Creator' : 'Project Member');
                               
                               if (!mounted) return;
                               Navigator.pushReplacement(

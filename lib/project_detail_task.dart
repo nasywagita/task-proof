@@ -34,21 +34,29 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
       'title': 'UI Login Screen',
       'deadline': 'Oct 30, 2026',
       'status': 'In Progress',
+      'assignee': 'Ilham',
+      'description': 'Design and develop the User Interface for the Login screen, including input validation and Google/Apple SSO buttons.',
     },
     {
       'title': 'UI Registration Page',
       'deadline': 'Oct 28, 2026',
       'status': 'Pending Review',
+      'assignee': 'Alex',
+      'description': 'Create the registration form layout and user input fields. Review validation for passwords and email formats.',
     },
     {
       'title': 'Wireframing Homepage',
       'deadline': 'Sep 15, 2026',
       'status': 'Completed',
+      'assignee': 'Sarah',
+      'description': 'High-fidelity wireframes for the homepage detailing main dashboard layout, user profiles, and quick navigation links.',
     },
     {
       'title': 'User Persona Documentation',
       'deadline': 'Sep 10, 2026',
       'status': 'Completed',
+      'assignee': 'Dewi',
+      'description': 'Define target user personas based on research data to guide product layout design and UX flows.',
     },
   ];
 
@@ -77,9 +85,25 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
             ),
           ),
           actions: [
-            IconButton(
+            PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, color: Color(0xFF006B58)),
-              onPressed: () {},
+              onSelected: (value) {
+                if (value == 'delete') {
+                  showDeleteProjectDialog(context, widget.project);
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                      SizedBox(width: 8),
+                      Text('Delete Project', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
           bottom: TaskDetailTabBar(project: widget.project),
@@ -104,6 +128,8 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
                   'title': result['title'] ?? 'New Task',
                   'deadline': result['deadline'] ?? 'No Deadline',
                   'status': 'To Do',
+                  'description': result['desc'] ?? result['description'] ?? 'No description provided.',
+                  'assignee': result['member'] ?? result['assignee'] ?? 'Unassigned',
                 });
               });
             }
@@ -133,9 +159,7 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
                 // Render list tugas secara dinamis dari state _tasks
                 ..._tasks.map((task) => _buildTaskCard(
                   context,
-                  title: task['title'] ?? '',
-                  deadline: task['deadline'] ?? '',
-                  status: task['status'] ?? 'To Do',
+                  task,
                 )),
               ],
             ),
@@ -147,16 +171,12 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
 
   // Helper untuk membuat Kartu Task
   Widget _buildTaskCard(
-    BuildContext context, {
-    required String title,
-    required String deadline,
-    required String status,
-  }) {
-    final Map<String, dynamic> task = {
-      'title': title,
-      'deadline': deadline,
-      'status': status,
-    };
+    BuildContext context,
+    Map<String, dynamic> task,
+  ) {
+    final title = task['title'] ?? '';
+    final deadline = task['deadline'] ?? '';
+    final status = task['status'] ?? 'To Do';
 
     Color statusColor;
     Color statusBgColor;

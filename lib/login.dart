@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_proof/dashboard.dart';
 import 'package:task_proof/register.dart';
+import 'package:task_proof/app_state.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -170,8 +171,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // LOGIN BUTTON
                     ElevatedButton(
-                      onPressed: () {
-                        if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
+                      onPressed: () async {
+                        final email = _emailController.text.trim();
+                        final password = _passwordController.text;
+
+                        if (email.isEmpty || password.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Please enter your email and password'),
@@ -181,6 +185,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           return;
                         }
 
+                        await AppState.instance.setUserEmail(email);
+                        if (AppState.instance.userName.isEmpty || AppState.instance.userName == 'User') {
+                          final nameFromEmail = email.split('@').first;
+                          final formattedName = nameFromEmail[0].toUpperCase() + nameFromEmail.substring(1);
+                          await AppState.instance.setUserName(formattedName);
+                        }
+
+                        if (!mounted) return;
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(

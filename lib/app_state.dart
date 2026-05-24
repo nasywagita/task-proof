@@ -10,6 +10,8 @@ class AppState {
 
   // User information.
   String userName = '';
+  String userEmail = '';
+  String userRole = '';
 
   // Sample project and task data structures.
   final List<Map<String, dynamic>> projects = [
@@ -46,9 +48,25 @@ class AppState {
     await prefs.setBool('isRegistered', true);
   }
 
+  // Helper to update user email and save it.
+  Future<void> setUserEmail(String email) async {
+    userEmail = email;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userEmail', email);
+  }
+
+  // Helper to update user role and save it.
+  Future<void> setUserRole(String role) async {
+    userRole = role;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userRole', role);
+  }
+
   // Load user name and registration status on startup.
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     userName = prefs.getString('userName') ?? 'User';
+    userEmail = prefs.getString('userEmail') ?? 'user@company.com';
+    userRole = prefs.getString('userRole') ?? 'Project Creator';
   }
 }

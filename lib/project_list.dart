@@ -132,12 +132,17 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                 
                 // Create Project Option
                 InkWell(
-                  onTap: () {
+                  onTap: () async {
                     Navigator.pop(context); // Close bottom sheet
-                    Navigator.push(
+                    final result = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => CreateProjectScreen()),
+                      MaterialPageRoute(builder: (context) => const CreateProjectScreen()),
                     );
+                    if (result != null && result is Map<String, dynamic>) {
+                      setState(() {
+                        _allProjects.insert(0, result);
+                      });
+                    }
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
@@ -202,12 +207,17 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
                 // Join Project Option
                 InkWell(
-                  onTap: () {
+                  onTap: () async {
                     Navigator.pop(context); // Close bottom sheet
-                    Navigator.push(
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const JoinProjectScreen()),
                     );
+                    if (result != null && result is Map<String, dynamic>) {
+                      setState(() {
+                        _allProjects.insert(0, result);
+                      });
+                    }
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
@@ -413,13 +423,18 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     final iconColor = project['iconColor'] as Color;
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ProjectDetailOverviewScreen(project: project),
           ),
         );
+        if (result != null && result is Map<String, dynamic> && result['action'] == 'delete') {
+          setState(() {
+            _allProjects.removeWhere((p) => p['title'] == result['title']);
+          });
+        }
       },
       child: Container(
         width: double.infinity,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_proof/join_project.dart';
-import 'package:task_proof/project_detail_overview.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
+import 'package:task_proof/app_state.dart';
 
 void main() {
   runApp(const MyApp());
@@ -64,10 +64,14 @@ class CreateJoinProjectBody extends StatefulWidget {
 
 class _CreateJoinProjectBodyState extends State<CreateJoinProjectBody> {
   bool isCreateTab = true;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
 
   @override
   void dispose() {
+    _nameController.dispose();
+    _descController.dispose();
     _dateController.dispose();
     super.dispose();
   }
@@ -158,6 +162,7 @@ class _CreateJoinProjectBodyState extends State<CreateJoinProjectBody> {
           ),
           const SizedBox(height: 4),
           TextFormField(
+            controller: _nameController,
             decoration: InputDecoration(
               hintText: 'e.g. Mobile App Redesign',
               fillColor: Colors.white,
@@ -188,6 +193,7 @@ class _CreateJoinProjectBodyState extends State<CreateJoinProjectBody> {
           ),
           const SizedBox(height: 4),
           TextFormField(
+            controller: _descController,
             maxLines: 3,
             decoration: InputDecoration(
               hintText: 'Describe the goals and scope...',
@@ -309,16 +315,71 @@ class _CreateJoinProjectBodyState extends State<CreateJoinProjectBody> {
               elevation: 2,
             ),
             onPressed: () {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProjectDetailOverviewScreen(
-                project: {
-                  'title': 'New Project',
-                  'deadline': 'TBD',
-                  'status': 'Planning',
-                  'progress': 0.0,
-                  'progressText': '0%',
-                  'team': 'TBD'
+              final name = _nameController.text.trim();
+              final description = _descController.text.trim();
+              final deadlineText = _dateController.text.isNotEmpty ? _dateController.text : 'TBD';
+
+              if (name.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please enter a project name'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              // Format the deadline display text (e.g. converting "10 / 30 / 2026" to "Oct 30")
+              String displayDeadline = 'TBD';
+              if (_dateController.text.isNotEmpty) {
+                try {
+                  final parts = _dateController.text.split(' / ');
+                  if (parts.length == 3) {
+                    final month = int.parse(parts[0]);
+                    final day = int.parse(parts[1]);
+                    const months = [
+                      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                    ];
+                    if (month >= 1 && month <= 12) {
+                      displayDeadline = '${months[month - 1]} $day';
+                    }
+                  }
+                } catch (_) {
+                  displayDeadline = deadlineText;
                 }
-              )));
+              }
+
+              final newProject = {
+                'title': name,
+                'description': description,
+                'due': deadlineText,
+                'team': 'Creator Team',
+                'status': 'PLANNING',
+                'statusColor': const Color(0xFF3B82F6),
+                'statusBg': const Color(0x1A3B82F6),
+                'progress': 0.0,
+                'progressText': '0%',
+                'tasks': '0 Tasks',
+                'deadline': displayDeadline,
+                'iconBg': const Color(0xFFFFEBEB),
+                'iconColor': const Color(0xFFFF5252),
+                'isBordered': true,
+              };
+
+              // Add to AppState list
+              AppState.instance.projects.add(newProject);
+
+              // Show success SnackBar
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Project "$name" created successfully!'),
+                  backgroundColor: const Color(0xFF006B59),
+                ),
+              );
+
+              // Pop and return the project
+              Navigator.pop(context, newProject);
             },
             child: const Text(
               'Create Project',

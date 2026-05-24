@@ -39,6 +39,324 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   final List<Map<String, dynamic>> _progressHistory = [];
 
   @override
+  void initState() {
+    super.initState();
+    _initHistory();
+  }
+
+  void _initHistory() {
+    final title = widget.task['title'] ?? 'Task';
+    final assignee = widget.task['assignee'] ?? widget.task['member'] ?? 'Ilham';
+    final status = widget.task['status'] ?? 'To Do';
+
+    _progressHistory.clear();
+
+    if (status == 'Pending Review') {
+      _progressHistory.addAll([
+        {
+          'id': '1',
+          'user': assignee,
+          'time': '12 Mei, 14:30',
+          'notes': '“UI $title selesai, mohon di review untuk layout mobile-nya.”',
+          'link': 'https://www.figma.com/file/TaskProofPreview',
+          'linkText': 'Figma Design Link',
+          'status': 'Pending Review',
+          'canApproveReject': true,
+        },
+        {
+          'id': '2',
+          'user': assignee,
+          'time': '10 Mei, 09:15',
+          'notes': 'Draft pertama untuk UI $title.',
+          'link': 'https://www.figma.com/file/TaskProofDraft',
+          'linkText': 'Figma Draft Link',
+          'status': 'Rejected',
+          'rejectionReason': 'Layout not responsive on smaller mobile screens (< 360px width).',
+          'canApproveReject': false,
+        }
+      ]);
+    } else if (status == 'Completed') {
+      _progressHistory.addAll([
+        {
+          'id': '1',
+          'user': assignee,
+          'time': '12 Mei, 16:00',
+          'notes': '“UI $title selesai, semua revisi responsive layout mobile sudah diimplementasi.”',
+          'link': 'https://www.figma.com/file/TaskProofFinal',
+          'linkText': 'Figma Design Link',
+          'status': 'Approved',
+          'canApproveReject': false,
+        },
+        {
+          'id': '2',
+          'user': assignee,
+          'time': '10 Mei, 09:15',
+          'notes': 'Draft pertama untuk UI $title.',
+          'link': 'https://www.figma.com/file/TaskProofDraft',
+          'linkText': 'Figma Draft Link',
+          'status': 'Rejected',
+          'rejectionReason': 'Layout not responsive on smaller mobile screens (< 360px width).',
+          'canApproveReject': false,
+        }
+      ]);
+    } else if (status == 'In Progress') {
+      _progressHistory.addAll([
+        {
+          'id': '1',
+          'user': assignee,
+          'time': '10 Mei, 09:15',
+          'notes': 'Memulai pengerjaan $title, sedang mengumpulkan aset design dan menentukan layout grid.',
+          'status': 'Under Review',
+          'canApproveReject': false,
+        }
+      ]);
+    } else {
+      _progressHistory.addAll([
+        {
+          'id': '1',
+          'user': assignee,
+          'time': 'Just now',
+          'notes': 'Task assigned to $assignee. Ready to start.',
+          'status': 'To Do',
+          'canApproveReject': false,
+        }
+      ]);
+    }
+  }
+
+  void _handleApprove(Map<String, dynamic> item) {
+    setState(() {
+      item['status'] = 'Approved';
+      item['canApproveReject'] = false;
+      widget.task['status'] = 'Completed';
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF006B58),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        content: Row(
+          children: const [
+            Icon(Icons.check_circle_rounded, color: Color(0xFF13ECC8)),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Task approved successfully! Status updated to Completed.',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleReject(Map<String, dynamic> item) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Reject Progress',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF161D1B),
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Please specify the reason for rejecting this progress:',
+                style: TextStyle(color: Color(0xFF3F4946), fontSize: 14),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'e.g. Layout not responsive, incomplete validation...',
+                  hintStyle: const TextStyle(color: Color(0xFF7C7388)),
+                  filled: true,
+                  fillColor: const Color(0xFFF3FBF7),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFBFC9C5)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF13ECC8)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: Color(0xFF3F4946))),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF5252),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                final reason = controller.text.trim();
+                if (reason.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a rejection reason')),
+                  );
+                  return;
+                }
+                Navigator.pop(context);
+                setState(() {
+                  item['status'] = 'Rejected';
+                  item['rejectionReason'] = reason;
+                  item['canApproveReject'] = false;
+                  widget.task['status'] = 'To Do';
+                });
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFF141B2B),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.all(16),
+                    content: Row(
+                      children: const [
+                        Icon(Icons.cancel_outlined, color: Color(0xFFFF8A8A)),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Progress rejected. Task status returned to To Do.',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Reject'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _handleOpenLink(String url) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: const [
+              Icon(Icons.open_in_new, color: Color(0xFF006B58)),
+              SizedBox(width: 8),
+              Text(
+                'Opening Attachment',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF161D1B),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Simulating opening the external link:',
+                style: TextStyle(color: Color(0xFF3F4946), fontSize: 14),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3FBF7),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFDAE5E1)),
+                ),
+                child: Text(
+                  url,
+                  style: const TextStyle(
+                    color: Color(0xFF006B58),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close', style: TextStyle(color: Color(0xFF3F4946))),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF13ECC8),
+                foregroundColor: const Color(0xFF00382E),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFF006B58),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.all(16),
+                    content: Text('Navigating to $url...'),
+                  ),
+                );
+              },
+              child: const Text('Open URL'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3FBF7),
@@ -64,11 +382,36 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           ),
         ),
         actions: [
-          const CircleAvatar(
-            radius: 16,
-            backgroundImage: NetworkImage(
-              'https://i.pravatar.cc/100?img=33',
-            ), // Foto profil kanan atas
+          Container(
+            width: 32,
+            height: 32,
+            padding: const EdgeInsets.all(1.5),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x3313ECC8),
+                  blurRadius: 6,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(0.5),
+              decoration: const BoxDecoration(
+                color: Color(0xFF13ECC8),
+                shape: BoxShape.circle,
+              ),
+              child: const CircleAvatar(
+                backgroundColor: Color(0xFFEDF6F1),
+                child: Icon(
+                  Icons.person_rounded,
+                  size: 16,
+                  color: Color(0xFF006B58),
+                ),
+              ),
+            ),
           ),
           IconButton(
             icon: const Icon(
@@ -88,8 +431,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           TaskHeaderSection(task: widget.task),
           const SizedBox(height: 16),
           DescriptionCard(task: widget.task),
-          SizedBox(height: 24),
-          Text(
+          const SizedBox(height: 24),
+          const Text(
             'Progress History',
             style: TextStyle(
               fontSize: 18,
@@ -97,8 +440,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               color: Color(0xFF161D1B),
             ),
           ),
-          SizedBox(height: 16),
-          ProgressTimelineSection(history: _progressHistory),
+          const SizedBox(height: 16),
+          ProgressTimelineSection(
+            history: _progressHistory,
+            onApprove: _handleApprove,
+            onReject: _handleReject,
+            onOpenLink: _handleOpenLink,
+          ),
         ],
       ),
 
@@ -113,7 +461,17 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           );
           if (result != null && result is Map<String, dynamic>) {
             setState(() {
-              _progressHistory.insert(0, result);
+              _progressHistory.insert(0, {
+                'id': DateTime.now().millisecondsSinceEpoch.toString(),
+                'user': widget.task['assignee'] ?? widget.task['member'] ?? 'Ilham',
+                'time': 'Just now',
+                'notes': result['notes'] ?? '',
+                'link': result['link'] ?? '',
+                'linkText': 'Attachment Link',
+                'status': 'Pending Review',
+                'canApproveReject': true,
+              });
+              widget.task['status'] = 'Pending Review';
             });
           }
         },
@@ -188,8 +546,8 @@ class TaskHeaderSection extends StatelessWidget {
               style: TextStyle(color: Color(0xFF3F4946), fontSize: 13),
             ),
             Text(
-              task['assignee'] ?? 'Unassigned',
-              style: TextStyle(
+              task['assignee'] ?? task['member'] ?? 'Unassigned',
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF161D1B),
                 fontSize: 13,
@@ -256,7 +614,7 @@ class DescriptionCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            task['description'] ?? 'No description provided for this task. Please add more details if needed.',
+            task['description'] ?? task['desc'] ?? 'No description provided for this task. Please add more details if needed.',
             style: const TextStyle(
               color: Color(0xFF3F4946),
               height: 1.45,
@@ -272,29 +630,79 @@ class DescriptionCard extends StatelessWidget {
 //--- SUB-WIDGET 3: TIMELINE HISTORY LIST ---
 class ProgressTimelineSection extends StatelessWidget {
   final List<Map<String, dynamic>> history;
+  final Function(Map<String, dynamic>) onApprove;
+  final Function(Map<String, dynamic>) onReject;
+  final Function(String) onOpenLink;
 
-  const ProgressTimelineSection({super.key, required this.history});
+  const ProgressTimelineSection({
+    super.key,
+    required this.history,
+    required this.onApprove,
+    required this.onReject,
+    required this.onOpenLink,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Dynamic history
-        ...history.map((item) => _buildTimelineItem(
-          isActive: true,
-          statusBadge: _statusBadge(
-            'Under Review',
-            const Color(0x3313ECC8),
-            const Color(0xFF00382E),
+    if (history.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 24.0),
+          child: Text(
+            'No progress logs yet. Add your first progress submission!',
+            style: TextStyle(
+              color: Color(0xFF3F4946),
+              fontSize: 14,
+              fontFamily: 'Inter',
+            ),
           ),
+        ),
+      );
+    }
+
+    return Column(
+      children: history.map((item) {
+        final status = item['status'] ?? 'Under Review';
+        final isPending = status == 'Pending Review';
+        final isRejected = status == 'Rejected';
+        final isApproved = status == 'Approved';
+
+        Color bg;
+        Color text;
+        if (isApproved) {
+          bg = const Color(0xFFCCE8DF);
+          text = const Color(0xFF006B58);
+        } else if (isRejected) {
+          bg = const Color(0xFFFFEBEB);
+          text = const Color(0xFFFF5252);
+        } else if (isPending) {
+          bg = const Color(0x3313ECC8);
+          text = const Color(0xFF00382E);
+        } else {
+          bg = const Color(0xFFDEE4E2);
+          text = const Color(0xFF414947);
+        }
+
+        final showButtons = item['canApproveReject'] == true && isPending;
+
+        return _buildTimelineItem(
+          isActive: isPending || isApproved,
+          statusBadge: _statusBadge(status, bg, text),
           name: item['user'] ?? 'User',
           date: item['time'] ?? 'Just now',
           content: Text(
             item['notes'] ?? '',
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: Color(0xFF161D1B)),
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              color: isRejected ? const Color(0xFF3F4946) : const Color(0xFF161D1B),
+            ),
           ),
-          extraChild: (item['link'] != null && item['link'].toString().isNotEmpty)
-              ? Padding(
+          extraChild: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (item['link'] != null && item['link'].toString().isNotEmpty)
+                Padding(
                   padding: const EdgeInsets.only(top: 12.0),
                   child: Row(
                     children: [
@@ -310,158 +718,104 @@ class ProgressTimelineSection extends StatelessWidget {
                           size: 16,
                           color: Color(0xFF006B58),
                         ),
-                        label: const Text(
-                          'Attachment Link',
-                          style: TextStyle(color: Color(0xFF006B58), fontSize: 12),
+                        label: Text(
+                          item['linkText'] ?? 'Attachment Link',
+                          style: const TextStyle(color: Color(0xFF006B58), fontSize: 12),
                         ),
-                        onPressed: () {},
+                        onPressed: () => onOpenLink(item['link']),
                       ),
                     ],
                   ),
-                )
-              : null,
-        )),
-
-        // Card 1: Pending Review (Aktif)
-        _buildTimelineItem(
-          isActive: true,
-          statusBadge: _statusBadge(
-            'Pending Review',
-            const Color(0x3313ECC8),
-            const Color(0xFF00382E),
-          ),
-          name: 'Ilham',
-          date: '12 Mei, 14:30',
-          content: const Text(
-            '“UI Login selesai, mohon di review untuk layout mobile-nya.”',
-            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-          ),
-          extraChild: Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: Row(
-              children: [
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    backgroundColor: const Color(0x0A006B58),
-                  ),
-                  icon: const Icon(
-                    Icons.link,
-                    size: 16,
-                    color: Color(0xFF006B58),
-                  ),
-                  label: const Text(
-                    'Figma Design Link',
-                    style: TextStyle(color: Color(0xFF006B58), fontSize: 12),
-                  ),
-                  onPressed: () {},
                 ),
-              ],
-            ),
-          ),
-          bottomButtons: Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF13ECC8),
-                    foregroundColor: const Color(0xFF00382E),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              if (isRejected && item['rejectionReason'] != null && item['rejectionReason'].toString().isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3FBF7),
+                    border: Border.all(color: const Color(0xFFBEC9C5)),
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
                     ),
                   ),
-                  icon: const Icon(Icons.check_circle_outline, size: 16),
-                  label: const Text(
-                    'Approve',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'REASON FOR REJECTION',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF3F4946),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item['rejectionReason'],
+                        style: const TextStyle(fontSize: 13, color: Color(0xFF3F4946)),
+                      ),
+                    ],
                   ),
-                  onPressed: () {},
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(
-                      color: Color(0xFF13ECC8),
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  icon: const Icon(
-                    Icons.cancel_outlined,
-                    size: 16,
-                    color: Color(0xFF00382E),
-                  ),
-                  label: const Text(
-                    'Reject',
-                    style: TextStyle(
-                      color: Color(0xFF00382E),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  onPressed: () {},
-                ),
-              ),
             ],
           ),
-        ),
-
-        // Card 2: Rejected (History Lama)
-        _buildTimelineItem(
-          isActive: false,
-          statusBadge: _statusBadge(
-            'Rejected',
-            const Color(0xFFDAE5E1),
-            const Color(0xFF3F4946),
-          ),
-          name: 'Ilham',
-          date: '10 Mei, 09:15',
-          content: const Text(
-            'Draft pertama untuk UI Login.',
-            style: TextStyle(color: Color(0xFF3F4946), fontSize: 14),
-          ),
-          extraChild: Container(
-            margin: const EdgeInsets.only(top: 12),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3FBF7),
-              border: Border.all(color: const Color(0xFFBEC9C5)),
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              ),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'REASON FOR REJECTION',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3F4946),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Layout not responsive on smaller mobile screens (< 360px width).',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF3F4946)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+          bottomButtons: showButtons
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF13ECC8),
+                          foregroundColor: const Color(0xFF00382E),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(Icons.check_circle_outline, size: 16),
+                        label: const Text(
+                          'Approve',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        onPressed: () => onApprove(item),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(
+                            color: Color(0xFF13ECC8),
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.cancel_outlined,
+                          size: 16,
+                          color: Color(0xFF00382E),
+                        ),
+                        label: const Text(
+                          'Reject',
+                          style: TextStyle(
+                            color: Color(0xFF00382E),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () => onReject(item),
+                      ),
+                    ),
+                  ],
+                )
+              : null,
+        );
+      }).toList(),
     );
   }
 
-  // Helper untuk membuat item bergaris waktu samping (Timeline)
   Widget _buildTimelineItem({
     required bool isActive,
     required Widget statusBadge,
@@ -475,7 +829,6 @@ class ProgressTimelineSection extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Kolom Garis Alur/Timeline Pasif & Aktif kiri
           Column(
             children: [
               Container(
@@ -498,7 +851,6 @@ class ProgressTimelineSection extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 16),
-          // Kolom isi Kotak Card kanan
           Expanded(
             child: Container(
               margin: const EdgeInsets.only(bottom: 20),
@@ -528,7 +880,7 @@ class ProgressTimelineSection extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   content,
-                  ?extraChild,
+                  if (extraChild != null) extraChild,
                   if (bottomButtons != null) ...[
                     const SizedBox(height: 16),
                     bottomButtons,
