@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
 import 'package:task_proof/project_detail_overview.dart';
-import 'package:task_proof/project_detail_timeline.dart';
+import 'package:task_proof/project_detail_timeline.dart' show ProjectDetailTimelineScreen;
 import 'package:task_proof/task_detail.dart';
 import 'package:task_proof/add_task.dart';
 
