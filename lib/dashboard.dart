@@ -46,6 +46,78 @@ class _DashboardScreenState extends State<DashboardScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _initializeDynamicProjectDeadlines();
+  }
+
+  void _initializeDynamicProjectDeadlines() {
+    final now = DateTime.now();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    if (_dashboardProjects.length >= 2) {
+      final date1 = now.add(const Duration(days: 5));
+      _dashboardProjects[0]['deadline'] = '${months[date1.month - 1]} ${date1.day}';
+
+      final date2 = now.add(const Duration(days: 15));
+      _dashboardProjects[1]['deadline'] = '${months[date2.month - 1]} ${date2.day}';
+    }
+  }
+
+  String _getNextDeadline() {
+    if (_dashboardProjects.isEmpty) {
+      final now = DateTime.now();
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${months[now.month - 1]} ${now.day}';
+    }
+
+    DateTime? earliest;
+    String earliestStr = '';
+
+    final now = DateTime.now();
+    const months = {
+      'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+      'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
+    };
+
+    for (var project in _dashboardProjects) {
+      final deadline = project['deadline']?.toString() ?? '';
+      if (deadline.isEmpty || deadline.toLowerCase() == 'tbd') continue;
+
+      final parts = deadline.trim().split(' ');
+      if (parts.length == 2) {
+        final monthStr = parts[0].toLowerCase();
+        final dayStr = parts[1];
+
+        if (months.containsKey(monthStr)) {
+          final month = months[monthStr]!;
+          final day = int.tryParse(dayStr);
+          if (day != null) {
+            final year = now.year;
+            var projectDate = DateTime(year, month, day);
+            if (projectDate.isBefore(DateTime(now.year, now.month, now.day))) {
+              projectDate = DateTime(year + 1, month, day);
+            }
+
+            if (earliest == null || projectDate.isBefore(earliest)) {
+              earliest = projectDate;
+              earliestStr = deadline;
+            }
+          }
+        }
+      }
+    }
+
+    if (earliestStr.isNotEmpty) {
+      return earliestStr;
+    }
+
+    final nowTime = DateTime.now();
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${monthNames[nowTime.month - 1]} ${nowTime.day}';
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -206,9 +278,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Oct 30',
-                            style: TextStyle(
+                          Text(
+                            _getNextDeadline(),
+                            style: const TextStyle(
                               color: Color(0xFF0F172A),
                               fontSize: 16,
                               fontFamily: 'Inter',

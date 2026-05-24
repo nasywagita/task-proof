@@ -64,6 +64,43 @@ class _TaskListScreenState extends State<TaskListScreen> {
     },
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _initializeDynamicTaskDeadlines();
+  }
+
+  void _initializeDynamicTaskDeadlines() {
+    final now = DateTime.now();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    if (_allTasks.length >= 6) {
+      // Task 0: In Progress (e.g. 5 days from now)
+      final date0 = now.add(const Duration(days: 5));
+      _allTasks[0]['deadline'] = '${months[date0.month - 1]} ${date0.day}, ${date0.year}';
+
+      // Task 1: Pending Review (e.g. 3 days from now)
+      final date1 = now.add(const Duration(days: 3));
+      _allTasks[1]['deadline'] = '${months[date1.month - 1]} ${date1.day}, ${date1.year}';
+
+      // Task 2: Completed (e.g. 10 days ago)
+      final date2 = now.subtract(const Duration(days: 10));
+      _allTasks[2]['deadline'] = '${months[date2.month - 1]} ${date2.day}, ${date2.year}';
+
+      // Task 3: Completed (e.g. 15 days ago)
+      final date3 = now.subtract(const Duration(days: 15));
+      _allTasks[3]['deadline'] = '${months[date3.month - 1]} ${date3.day}, ${date3.year}';
+
+      // Task 4: To Do (e.g. 20 days from now)
+      final date4 = now.add(const Duration(days: 20));
+      _allTasks[4]['deadline'] = '${months[date4.month - 1]} ${date4.day}, ${date4.year}';
+
+      // Task 5: To Do (e.g. 35 days from now)
+      final date5 = now.add(const Duration(days: 35));
+      _allTasks[5]['deadline'] = '${months[date5.month - 1]} ${date5.day}, ${date5.year}';
+    }
+  }
+
   List<Map<String, dynamic>> get _filteredTasks {
     if (selectedFilter == 'All') {
       return _allTasks;

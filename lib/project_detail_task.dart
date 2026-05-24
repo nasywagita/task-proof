@@ -61,11 +61,37 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _initializeDynamicTaskDeadlines();
+  }
+
+  void _initializeDynamicTaskDeadlines() {
+    final now = DateTime.now();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    if (_tasks.length >= 4) {
+      // Task 0: In Progress (e.g. 5 days from now)
+      final date0 = now.add(const Duration(days: 5));
+      _tasks[0]['deadline'] = '${months[date0.month - 1]} ${date0.day}, ${date0.year}';
+
+      // Task 1: Pending Review (e.g. 3 days from now)
+      final date1 = now.add(const Duration(days: 3));
+      _tasks[1]['deadline'] = '${months[date1.month - 1]} ${date1.day}, ${date1.year}';
+
+      // Task 2: Completed (e.g. 10 days ago)
+      final date2 = now.subtract(const Duration(days: 10));
+      _tasks[2]['deadline'] = '${months[date2.month - 1]} ${date2.day}, ${date2.year}';
+
+      // Task 3: Completed (e.g. 15 days ago)
+      final date3 = now.subtract(const Duration(days: 15));
+      _tasks[3]['deadline'] = '${months[date3.month - 1]} ${date3.day}, ${date3.year}';
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
-      home: Scaffold(
+    return Scaffold(
         backgroundColor: const Color(0xFFF3FBF7),
         appBar: AppBar(
           backgroundColor: const Color(0xFFF3FBF7),
@@ -165,8 +191,7 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   // Helper untuk membuat Kartu Task

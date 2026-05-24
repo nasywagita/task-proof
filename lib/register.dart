@@ -52,6 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF6F8F8),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -63,6 +64,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(32),
                   border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x3313ECC8),
+                      blurRadius: 20,
+                      offset: Offset(0, 10),
+                    )
+                  ],
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: Column(
@@ -80,31 +88,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // --- HEADER (Back Button & Title) ---
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.arrow_back,
-                                  color: Color(0xFF0F172A),
-                                ),
-                                onPressed: () {},
+                          // --- HEADER (Centered Title) ---
+                          const Center(
+                            child: Text(
+                              'Create Account',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0F172A),
                               ),
-                              const Expanded(
-                                child: Text(
-                                  'Create Account',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF0F172A),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 48,
-                              ), // Penyeimbang posisi title di tengah
-                            ],
+                            ),
                           ),
                           const SizedBox(height: 24),
 
@@ -161,40 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             isPassword: true,
                             controller: _passwordController,
                           ),
-                          const SizedBox(height: 20),
-
-                          // --- ROLE SELECTION (CREATOR & MEMBER) ---
-                          _buildInputLabel('Select Your Role'),
-                          Row(
-                            children: [
-                              // Tombol Role: Creator
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () =>
-                                      setState(() => isCreatorSelected = true),
-                                  child: _buildRoleCard(
-                                    label: 'Creator',
-                                    icon: Icons.edit_note_rounded,
-                                    isSelected: isCreatorSelected,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              // Tombol Role: Member
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () =>
-                                      setState(() => isCreatorSelected = false),
-                                  child: _buildRoleCard(
-                                    label: 'Member',
-                                    icon: Icons.groups_outlined,
-                                    isSelected: !isCreatorSelected,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
+                           const SizedBox(height: 20),
 
                           // --- PRIVACY POLICY CHECKBOX ---
                           Row(
@@ -262,6 +222,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                               await AppState.instance.setUserName(name);
                               await AppState.instance.setUserEmail(email);
+                              await AppState.instance.setUserPassword(password);
                               await AppState.instance.setUserRole(isCreatorSelected ? 'Project Creator' : 'Project Member');
                               
                               if (!mounted) return;
@@ -297,68 +258,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-
-                          // --- DIVIDER OR CONTINUE WITH ---
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Divider(color: Colors.grey.shade200),
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  'OR CONTINUE WITH',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF94A3B8),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(color: Colors.grey.shade200),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-
-                          // --- GOOGLE SIGN IN BUTTON ---
-                          OutlinedButton.icon(
-                            onPressed: () {},
-                            icon: Image.network(
-                              'https://developers.google.com/identity/images/g-logo.png',
-                              height: 20,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(
-                                  Icons.g_mobiledata,
-                                  size: 24,
-                                  color: Colors.red,
-                                );
-                              },
-                            ),
-                            label: const Text('Continue with Google'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF334155),
-                              backgroundColor: Colors.white,
-                              minimumSize: const Size(double.infinity, 52),
-                              elevation: 0,
-                              side: BorderSide(
-                                color: Colors.grey.shade300,
-                                width: 1.2,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'Inter',
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 32),
 
                           // --- FOOTER SIGN IN ---
                           Center(
@@ -449,44 +348,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // Helper membuat Seleksi Role Card kustom
-  Widget _buildRoleCard({
-    required String label,
-    required IconData icon,
-    required bool isSelected,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0x0C13ECC8) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSelected ? const Color(0xFF13ECC8) : Colors.grey.shade200,
-          width: 2,
-        ),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            icon,
-            color: isSelected
-                ? const Color(0xFF13ECC8)
-                : const Color(0xFF64748B),
-            size: 28,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected
-                  ? const Color(0xFF0F172A)
-                  : const Color(0xFF64748B),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

@@ -12,6 +12,7 @@ class AppState {
   String userName = '';
   String userEmail = '';
   String userRole = '';
+  String userPassword = '';
 
   // Sample project and task data structures.
   final List<Map<String, dynamic>> projects = [
@@ -62,11 +63,19 @@ class AppState {
     await prefs.setString('userRole', role);
   }
 
+  // Helper to update user password and save it.
+  Future<void> setUserPassword(String password) async {
+    userPassword = password;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userPassword', password);
+  }
+
   // Load user name and registration status on startup.
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     userName = prefs.getString('userName') ?? 'User';
     userEmail = prefs.getString('userEmail') ?? 'user@company.com';
     userRole = prefs.getString('userRole') ?? 'Project Creator';
+    userPassword = prefs.getString('userPassword') ?? '';
   }
 }

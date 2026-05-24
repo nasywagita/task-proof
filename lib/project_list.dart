@@ -70,6 +70,35 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     },
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _initializeDynamicProjectDeadlines();
+  }
+
+  void _initializeDynamicProjectDeadlines() {
+    final now = DateTime.now();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    if (_allProjects.length >= 4) {
+      // Project 1 (ON TRACK, e.g. 5 days from now)
+      final date1 = now.add(const Duration(days: 5));
+      _allProjects[0]['deadline'] = '${months[date1.month - 1]} ${date1.day}';
+
+      // Project 2 (PLANNING, e.g. 15 days from now)
+      final date2 = now.add(const Duration(days: 15));
+      _allProjects[1]['deadline'] = '${months[date2.month - 1]} ${date2.day}';
+
+      // Project 3 (ON TRACK, e.g. 20 days from now)
+      final date3 = now.add(const Duration(days: 20));
+      _allProjects[2]['deadline'] = '${months[date3.month - 1]} ${date3.day}';
+
+      // Project 4 (COMPLETED, e.g. 10 days ago)
+      final date4 = now.subtract(const Duration(days: 10));
+      _allProjects[3]['deadline'] = '${months[date4.month - 1]} ${date4.day}';
+    }
+  }
+
   List<Map<String, dynamic>> get _filteredProjects {
     if (selectedFilter == 'All') {
       return _allProjects;

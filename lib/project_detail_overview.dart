@@ -347,8 +347,227 @@ void showDeleteProjectDialog(BuildContext context, Map<String, dynamic> project)
 }
 
 //--- SUB-WIDGET 3: SECTION TEAM (AMBIL AVATAR AMAN) ---
-class TeamCardSection extends StatelessWidget {
+class TeamCardSection extends StatefulWidget {
   const TeamCardSection({super.key});
+
+  @override
+  State<TeamCardSection> createState() => _TeamCardSectionState();
+}
+
+class _TeamCardSectionState extends State<TeamCardSection> {
+  final List<Map<String, String>> _teamMembers = [
+    {
+      'name': 'Alex Johnson',
+      'role': 'Product Designer',
+      'avatar': 'https://i.pravatar.cc/100?img=1',
+    },
+    {
+      'name': 'Ilham Ramadhan',
+      'role': 'Mobile Developer',
+      'avatar': 'https://i.pravatar.cc/100?img=2',
+    },
+    {
+      'name': 'Sarah Smith',
+      'role': 'QA Engineer',
+      'avatar': 'https://i.pravatar.cc/100?img=3',
+    },
+  ];
+
+  void _showManageTeamBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        final nameController = TextEditingController();
+        final roleController = TextEditingController();
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 24.0,
+                right: 24.0,
+                top: 20.0,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24.0,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 48,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Manage Team',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF161D1B),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: _teamMembers.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20.0),
+                            child: Center(
+                              child: Text(
+                                'No team members yet.',
+                                style: TextStyle(color: Color(0xFF64748B)),
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _teamMembers.length,
+                            itemBuilder: (context, index) {
+                              final member = _teamMembers[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 18,
+                                      backgroundImage: NetworkImage(member['avatar'] ?? 'https://i.pravatar.cc/100?img=99'),
+                                      backgroundColor: const Color(0xFFEDF6F1),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            member['name'] ?? '',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                              color: Color(0xFF161D1B),
+                                            ),
+                                          ),
+                                          Text(
+                                            member['role'] ?? '',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                      onPressed: () {
+                                        setSheetState(() {
+                                          _teamMembers.removeAt(index);
+                                        });
+                                        setState(() {});
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                  const Divider(height: 32),
+                  const Text(
+                    'Add New Member',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF161D1B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      hintText: 'e.g. John Doe',
+                      labelText: 'Full Name',
+                      labelStyle: const TextStyle(color: Color(0xFF006B58)),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF13ECC8), width: 1.5),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: roleController,
+                    decoration: InputDecoration(
+                      hintText: 'e.g. Developer',
+                      labelText: 'Role',
+                      labelStyle: const TextStyle(color: Color(0xFF006B58)),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF13ECC8), width: 1.5),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      final name = nameController.text.trim();
+                      final role = roleController.text.trim();
+                      if (name.isEmpty || role.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please fill all fields')),
+                        );
+                        return;
+                      }
+                      
+                      final randomId = (_teamMembers.length + 1) * 3 % 70 + 1;
+                      
+                      setSheetState(() {
+                        _teamMembers.add({
+                          'name': name,
+                          'role': role,
+                          'avatar': 'https://i.pravatar.cc/100?img=$randomId',
+                        });
+                      });
+                      setState(() {});
+                      
+                      nameController.clear();
+                      roleController.clear();
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('$name added to the team!'),
+                          backgroundColor: const Color(0xFF006B58),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF13ECC8),
+                      foregroundColor: const Color(0xFF006655),
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Add Member', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -380,30 +599,30 @@ class TeamCardSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Menggunakan row bertumpuk untuk list avatar tanpa bikin overflow
               Row(
                 children: [
-                  _avatar('https://i.pravatar.cc/100?img=1'),
-                  _avatar('https://i.pravatar.cc/100?img=2'),
-                  _avatar('https://i.pravatar.cc/100?img=3'),
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3FBF7),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFBFC9C5)),
-                    ),
-                    child: const Icon(
-                      Icons.add,
-                      size: 16,
-                      color: Color(0xFF006B58),
+                  ..._teamMembers.map((m) => _avatar(m['avatar'] ?? '')),
+                  GestureDetector(
+                    onTap: _showManageTeamBottomSheet,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3FBF7),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFBFC9C5)),
+                      ),
+                      child: const Icon(
+                        Icons.add,
+                        size: 16,
+                        color: Color(0xFF006B58),
+                      ),
                     ),
                   ),
                 ],
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: _showManageTeamBottomSheet,
                 child: const Text(
                   'Manage Team',
                   style: TextStyle(
@@ -423,7 +642,11 @@ class TeamCardSection extends StatelessWidget {
   Widget _avatar(String url) {
     return Padding(
       padding: const EdgeInsets.only(right: 6.0),
-      child: CircleAvatar(radius: 16, backgroundImage: NetworkImage(url)),
+      child: CircleAvatar(
+        radius: 16,
+        backgroundImage: NetworkImage(url),
+        backgroundColor: const Color(0xFFEDF6F1),
+      ),
     );
   }
 }

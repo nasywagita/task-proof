@@ -185,11 +185,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           return;
                         }
 
-                        await AppState.instance.setUserEmail(email);
-                        if (AppState.instance.userName.isEmpty || AppState.instance.userName == 'User') {
-                          final nameFromEmail = email.split('@').first;
-                          final formattedName = nameFromEmail[0].toUpperCase() + nameFromEmail.substring(1);
-                          await AppState.instance.setUserName(formattedName);
+                        // Retrieve the registered credentials from AppState
+                        final registeredEmail = AppState.instance.userEmail.trim();
+                        final registeredPassword = AppState.instance.userPassword;
+
+                        // Check if the inputted email and password match the registered ones
+                        if (email.toLowerCase() != registeredEmail.toLowerCase() || password != registeredPassword) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Invalid email or password. Please try again.'),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                          return;
                         }
 
                         if (!mounted) return;
@@ -219,57 +227,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
 
                     const SizedBox(height: 24),
-
-                    // DIVIDER
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: Colors.grey.shade200)),
-
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            'Or continue with',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ),
-
-                        Expanded(child: Divider(color: Colors.grey.shade200)),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // GOOGLE BUTTON
-                    OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: Image.network(
-                        'https://developers.google.com/identity/images/g-logo.png',
-                        height: 20,
-                      ),
-                      label: const Text('Continue with Google'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF334155),
-                        backgroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 56),
-                        elevation: 0,
-                        side: BorderSide(
-                          color: Colors.grey.shade300,
-                          width: 1.2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
 
                     // REGISTER LINK
                     GestureDetector(
