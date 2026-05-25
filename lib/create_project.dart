@@ -365,10 +365,11 @@ class _CreateJoinProjectBodyState extends State<CreateJoinProjectBody> {
                 'iconBg': const Color(0xFFFFEBEB),
                 'iconColor': const Color(0xFFFF5252),
                 'isBordered': true,
+                'taskList': <Map<String, dynamic>>[],
               };
 
-              // Add to AppState list
-              AppState.instance.projects.add(newProject);
+              // Add to AppState list at the beginning
+              AppState.instance.projects.insert(0, newProject);
 
               // Show success SnackBar
               ScaffoldMessenger.of(context).showSnackBar(

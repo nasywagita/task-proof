@@ -14,55 +14,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final List<Map<String, dynamic>> _dashboardProjects = [
-    {
-      'title': 'Mobile App Redesign',
-      'team': 'Design Team',
-      'status': 'ON TRACK',
-      'statusColor': const Color(0xFF13ECC8),
-      'statusBg': const Color(0x1A13ECC8),
-      'progress': 0.75,
-      'progressText': '75%',
-      'tasks': '12 Tasks',
-      'deadline': 'Oct 30',
-      'iconBg': const Color(0xFFDCE2F7),
-      'iconColor': const Color(0xFF5E7FE5),
-      'isBordered': false,
-    },
-    {
-      'title': 'Q4 Marketing Campaign',
-      'team': 'Marketing Dept',
-      'status': 'PLANNING',
-      'statusColor': const Color(0xFF3B82F6),
-      'statusBg': const Color(0x1A3B82F6),
-      'progress': 0.15,
-      'progressText': '15%',
-      'tasks': '24 Tasks',
-      'deadline': 'Nov 15',
-      'iconBg': const Color(0xFFFFEBEB),
-      'iconColor': const Color(0xFFFF5252),
-      'isBordered': true,
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeDynamicProjectDeadlines();
-  }
-
-  void _initializeDynamicProjectDeadlines() {
-    final now = DateTime.now();
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    if (_dashboardProjects.length >= 2) {
-      final date1 = now.add(const Duration(days: 5));
-      _dashboardProjects[0]['deadline'] = '${months[date1.month - 1]} ${date1.day}';
-
-      final date2 = now.add(const Duration(days: 15));
-      _dashboardProjects[1]['deadline'] = '${months[date2.month - 1]} ${date2.day}';
-    }
-  }
+  List<Map<String, dynamic>> get _dashboardProjects => AppState.instance.projects;
 
   String _getNextDeadline() {
     if (_dashboardProjects.isEmpty) {
@@ -304,10 +256,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             context,
                             MaterialPageRoute(builder: (context) => const CreateProjectScreen()),
                           );
-                          if (result != null && result is Map<String, dynamic>) {
-                            setState(() {
-                              _dashboardProjects.insert(0, result);
-                            });
+                          if (result != null) {
+                            setState(() {});
                           }
                         },
                         child: Container(
@@ -347,10 +297,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             context,
                             MaterialPageRoute(builder: (context) => const JoinProjectScreen()),
                           );
-                          if (result != null && result is Map<String, dynamic>) {
-                            setState(() {
-                              _dashboardProjects.insert(0, result);
-                            });
+                          if (result != null) {
+                            setState(() {});
                           }
                         },
                         child: Container(
@@ -415,20 +363,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 // Render dashboard projects dynamically
                 ..._dashboardProjects.map((p) => Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
-                  child: _buildProjectCard(
-                    title: p['title'],
-                    team: p['team'],
-                    status: p['status'],
-                    statusColor: p['statusColor'],
-                    statusBg: p['statusBg'],
-                    progress: p['progress'],
-                    progressText: p['progressText'],
-                    tasks: p['tasks'],
-                    deadline: p['deadline'],
-                    iconBg: p['iconBg'],
-                    iconColor: p['iconColor'],
-                    isBordered: p['isBordered'],
-                  ),
+                  child: _buildProjectCard(p),
                 )),
                 const SizedBox(height: 32),
               ],
@@ -440,41 +375,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildProjectCard({
-    required String title,
-    required String team,
-    required String status,
-    required Color statusColor,
-    required Color statusBg,
-    required double progress,
-    required String progressText,
-    required String tasks,
-    required String deadline,
-    required Color iconBg,
-    required Color iconColor,
-    required bool isBordered,
-  }) {
+  Widget _buildProjectCard(Map<String, dynamic> project) {
+    final title = project['title'] as String;
+    final team = project['team'] as String;
+    final status = project['status'] as String;
+    final statusColor = project['statusColor'] as Color;
+    final statusBg = project['statusBg'] as Color;
+    final progress = project['progress'] as double;
+    final progressText = project['progressText'] as String;
+    final tasks = project['tasks'] as String;
+    final deadline = project['deadline'] as String;
+    final iconBg = project['iconBg'] as Color;
+    final iconColor = project['iconColor'] as Color;
+    final isBordered = project['isBordered'] ?? false;
+
     return GestureDetector(
       onTap: () async {
-        final Map<String, dynamic> projectData = {
-          'title': title,
-          'team': team,
-          'status': status,
-          'statusColor': statusColor,
-          'statusBg': statusBg,
-          'progress': progress,
-          'progressText': progressText,
-          'tasks': tasks,
-          'deadline': deadline,
-        };
         final result = await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ProjectDetailOverviewScreen(project: projectData)),
+          MaterialPageRoute(builder: (context) => ProjectDetailOverviewScreen(project: project)),
         );
         if (result != null && result is Map<String, dynamic> && result['action'] == 'delete') {
           setState(() {
             _dashboardProjects.removeWhere((p) => p['title'] == result['title']);
           });
+        } else {
+          setState(() {});
         }
       },
       child: Container(

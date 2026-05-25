@@ -239,15 +239,16 @@ class _JoinProjectScreenState extends State<JoinProjectScreen> {
                     'statusBg': const Color(0x2613ECC8),
                     'progress': 0.1,
                     'progressText': '10%',
-                    'tasks': '4 Tasks',
+                    'tasks': '0 Tasks',
                     'deadline': 'Dec 25',
                     'iconBg': const Color(0xFFE2F7ED),
                     'iconColor': const Color(0xFF10B981),
                     'isBordered': false,
+                    'taskList': <Map<String, dynamic>>[],
                   };
 
-                  // Add to AppState list
-                  AppState.instance.projects.add(joinedProject);
+                  // Add to AppState list at the beginning
+                  AppState.instance.projects.insert(0, joinedProject);
 
                   // Show success SnackBar
                   ScaffoldMessenger.of(context).showSnackBar(

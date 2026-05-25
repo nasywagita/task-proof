@@ -28,65 +28,12 @@ class ProjectDetailTaskScreen extends StatefulWidget {
 }
 
 class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
-  // Daftar tugas proyek lokal dinamis
-  final List<Map<String, dynamic>> _tasks = [
-    {
-      'title': 'UI Login Screen',
-      'deadline': 'Oct 30, 2026',
-      'status': 'In Progress',
-      'assignee': 'Ilham',
-      'description': 'Design and develop the User Interface for the Login screen, including input validation and Google/Apple SSO buttons.',
-    },
-    {
-      'title': 'UI Registration Page',
-      'deadline': 'Oct 28, 2026',
-      'status': 'Pending Review',
-      'assignee': 'Alex',
-      'description': 'Create the registration form layout and user input fields. Review validation for passwords and email formats.',
-    },
-    {
-      'title': 'Wireframing Homepage',
-      'deadline': 'Sep 15, 2026',
-      'status': 'Completed',
-      'assignee': 'Sarah',
-      'description': 'High-fidelity wireframes for the homepage detailing main dashboard layout, user profiles, and quick navigation links.',
-    },
-    {
-      'title': 'User Persona Documentation',
-      'deadline': 'Sep 10, 2026',
-      'status': 'Completed',
-      'assignee': 'Dewi',
-      'description': 'Define target user personas based on research data to guide product layout design and UX flows.',
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeDynamicTaskDeadlines();
-  }
-
-  void _initializeDynamicTaskDeadlines() {
-    final now = DateTime.now();
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    if (_tasks.length >= 4) {
-      // Task 0: In Progress (e.g. 5 days from now)
-      final date0 = now.add(const Duration(days: 5));
-      _tasks[0]['deadline'] = '${months[date0.month - 1]} ${date0.day}, ${date0.year}';
-
-      // Task 1: Pending Review (e.g. 3 days from now)
-      final date1 = now.add(const Duration(days: 3));
-      _tasks[1]['deadline'] = '${months[date1.month - 1]} ${date1.day}, ${date1.year}';
-
-      // Task 2: Completed (e.g. 10 days ago)
-      final date2 = now.subtract(const Duration(days: 10));
-      _tasks[2]['deadline'] = '${months[date2.month - 1]} ${date2.day}, ${date2.year}';
-
-      // Task 3: Completed (e.g. 15 days ago)
-      final date3 = now.subtract(const Duration(days: 15));
-      _tasks[3]['deadline'] = '${months[date3.month - 1]} ${date3.day}, ${date3.year}';
+  // Daftar tugas proyek dari global state
+  List<Map<String, dynamic>> get _tasks {
+    if (widget.project['taskList'] == null) {
+      widget.project['taskList'] = <Map<String, dynamic>>[];
     }
+    return List<Map<String, dynamic>>.from(widget.project['taskList']);
   }
 
   @override
@@ -150,13 +97,22 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
             // Jika ada data tugas baru yang ditambahkan, masukkan ke list tugas dinamis
             if (result != null && result is Map<String, dynamic>) {
               setState(() {
-                _tasks.insert(0, {
+                if (widget.project['taskList'] == null) {
+                  widget.project['taskList'] = <Map<String, dynamic>>[];
+                }
+                final List<Map<String, dynamic>> taskList = List<Map<String, dynamic>>.from(widget.project['taskList']);
+                taskList.insert(0, {
                   'title': result['title'] ?? 'New Task',
                   'deadline': result['deadline'] ?? 'No Deadline',
                   'status': 'To Do',
                   'description': result['desc'] ?? result['description'] ?? 'No description provided.',
                   'assignee': result['member'] ?? result['assignee'] ?? 'Unassigned',
                 });
+                widget.project['taskList'] = taskList;
+                
+                // Update project task count dynamically
+                final int count = taskList.length;
+                widget.project['tasks'] = '$count Task${count == 1 ? "" : "s"}';
               });
             }
           },
@@ -225,11 +181,12 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
     }
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => TaskDetailScreen(task: task)),
         );
+        setState(() {});
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),

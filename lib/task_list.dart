@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
 import 'package:task_proof/task_detail.dart';
+import 'package:task_proof/app_state.dart';
 
 class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
@@ -12,125 +13,48 @@ class TaskListScreen extends StatefulWidget {
 class _TaskListScreenState extends State<TaskListScreen> {
   String selectedFilter = 'All';
 
-  // Dummy Task Data from overall projects
-  final List<Map<String, dynamic>> _allTasks = [
-    {
-      'title': 'UI Login Screen',
-      'project': 'Mobile App Redesign',
-      'deadline': 'Oct 30, 2026',
-      'status': 'In Progress',
-      'assignee': 'Ilham',
-      'description': 'Design and develop the User Interface for the Login screen, including input validation and Google/Apple SSO buttons.',
-    },
-    {
-      'title': 'UI Registration Page',
-      'project': 'Mobile App Redesign',
-      'deadline': 'Oct 28, 2026',
-      'status': 'Pending Review',
-      'assignee': 'Alex',
-      'description': 'Create the registration form layout and user input fields. Review validation for passwords and email formats.',
-    },
-    {
-      'title': 'Wireframing Homepage',
-      'project': 'Mobile App Redesign',
-      'deadline': 'Sep 15, 2026',
-      'status': 'Completed',
-      'assignee': 'Sarah',
-      'description': 'High-fidelity wireframes for the homepage detailing main dashboard layout, user profiles, and quick navigation links.',
-    },
-    {
-      'title': 'User Persona Documentation',
-      'project': 'Mobile App Redesign',
-      'deadline': 'Sep 10, 2026',
-      'status': 'Completed',
-      'assignee': 'Dewi',
-      'description': 'Define target user personas based on research data to guide product layout design and UX flows.',
-    },
-    {
-      'title': 'Setup API Endpoint',
-      'project': 'Web Portal Development',
-      'deadline': 'Dec 01, 2026',
-      'status': 'To Do',
-      'assignee': 'Ilham',
-      'description': 'Create robust REST API endpoints for user authentication, project details, and progress submissions.',
-    },
-    {
-      'title': 'Push Notifications Setup',
-      'project': 'Web Portal Development',
-      'deadline': 'Dec 15, 2026',
-      'status': 'To Do',
-      'assignee': 'Alex',
-      'description': 'Integrate Firebase Cloud Messaging (FCM) to deliver real-time notifications for task updates and approvals.',
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeDynamicTaskDeadlines();
-  }
-
-  void _initializeDynamicTaskDeadlines() {
-    final now = DateTime.now();
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    if (_allTasks.length >= 6) {
-      // Task 0: In Progress (e.g. 5 days from now)
-      final date0 = now.add(const Duration(days: 5));
-      _allTasks[0]['deadline'] = '${months[date0.month - 1]} ${date0.day}, ${date0.year}';
-
-      // Task 1: Pending Review (e.g. 3 days from now)
-      final date1 = now.add(const Duration(days: 3));
-      _allTasks[1]['deadline'] = '${months[date1.month - 1]} ${date1.day}, ${date1.year}';
-
-      // Task 2: Completed (e.g. 10 days ago)
-      final date2 = now.subtract(const Duration(days: 10));
-      _allTasks[2]['deadline'] = '${months[date2.month - 1]} ${date2.day}, ${date2.year}';
-
-      // Task 3: Completed (e.g. 15 days ago)
-      final date3 = now.subtract(const Duration(days: 15));
-      _allTasks[3]['deadline'] = '${months[date3.month - 1]} ${date3.day}, ${date3.year}';
-
-      // Task 4: To Do (e.g. 20 days from now)
-      final date4 = now.add(const Duration(days: 20));
-      _allTasks[4]['deadline'] = '${months[date4.month - 1]} ${date4.day}, ${date4.year}';
-
-      // Task 5: To Do (e.g. 35 days from now)
-      final date5 = now.add(const Duration(days: 35));
-      _allTasks[5]['deadline'] = '${months[date5.month - 1]} ${date5.day}, ${date5.year}';
-    }
-  }
-
-  List<Map<String, dynamic>> get _filteredTasks {
-    if (selectedFilter == 'All') {
-      return _allTasks;
-    }
-    return _allTasks.where((t) {
-      final status = t['status'].toString().toUpperCase();
-      if (selectedFilter == 'To Do') return status == 'TO DO';
-      if (selectedFilter == 'In Progress') return status == 'IN PROGRESS';
-      if (selectedFilter == 'Pending Review') return status == 'PENDING REVIEW';
-      if (selectedFilter == 'Completed') return status == 'COMPLETED';
-      return true;
-    }).toList();
-  }
 
   List<Map<String, dynamic>> get _groupedFilteredProjects {
-    final List<Map<String, dynamic>> tasks = _filteredTasks;
-    final Map<String, List<Map<String, dynamic>>> groups = {};
-    
-    for (var task in tasks) {
-      final projectName = task['project'] as String;
-      if (!groups.containsKey(projectName)) {
-        groups[projectName] = [];
+    final List<Map<String, dynamic>> grouped = [];
+    for (var project in AppState.instance.projects) {
+      final projectName = project['title'] as String;
+      final taskList = project['taskList'];
+      final List<Map<String, dynamic>> projectTasks = [];
+      
+      if (taskList != null && taskList is List) {
+        for (var task in taskList) {
+          if (task is Map) {
+            final Map<String, dynamic> taskMap = Map<String, dynamic>.from(task);
+            final status = taskMap['status'].toString().toUpperCase();
+            
+            bool matchesFilter = false;
+            if (selectedFilter == 'All') {
+              matchesFilter = true;
+            } else if (selectedFilter == 'To Do' && status == 'TO DO') {
+              matchesFilter = true;
+            } else if (selectedFilter == 'In Progress' && status == 'IN PROGRESS') {
+              matchesFilter = true;
+            } else if (selectedFilter == 'Pending Review' && status == 'PENDING REVIEW') {
+              matchesFilter = true;
+            } else if (selectedFilter == 'Completed' && status == 'COMPLETED') {
+              matchesFilter = true;
+            }
+            
+            if (matchesFilter) {
+              projectTasks.add(taskMap);
+            }
+          }
+        }
       }
-      groups[projectName]!.add(task);
+      
+      if (projectTasks.isNotEmpty) {
+        grouped.add({
+          'projectName': projectName,
+          'tasks': projectTasks,
+        });
+      }
     }
-    
-    return groups.entries.map((e) => {
-      'projectName': e.key,
-      'tasks': e.value,
-    }).toList();
+    return grouped;
   }
 
   @override
@@ -304,13 +228,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
             return Column(
               children: [
                 InkWell(
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskDetailScreen(task: task),
                       ),
                     );
+                    setState(() {});
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),

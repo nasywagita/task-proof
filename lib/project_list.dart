@@ -3,6 +3,7 @@ import 'package:task_proof/shared_bottom_nav.dart';
 import 'package:task_proof/join_project.dart';
 import 'package:task_proof/project_detail_overview.dart';
 import 'package:task_proof/create_project.dart';
+import 'package:task_proof/app_state.dart';
 
 class ProjectListScreen extends StatefulWidget {
   const ProjectListScreen({super.key});
@@ -14,90 +15,8 @@ class ProjectListScreen extends StatefulWidget {
 class _ProjectListScreenState extends State<ProjectListScreen> {
   String selectedFilter = 'All';
 
-  // Dummy Project Data based on the app state
-  final List<Map<String, dynamic>> _allProjects = [
-    {
-      'title': 'Mobile App Redesign',
-      'team': 'Design Team',
-      'status': 'ON TRACK',
-      'statusColor': const Color(0xFF13ECC8),
-      'statusBg': const Color(0x2613ECC8),
-      'progress': 0.75,
-      'progressText': '75%',
-      'tasks': '12 Tasks',
-      'deadline': 'Oct 30',
-      'iconBg': const Color(0xFFDCE2F7),
-      'iconColor': const Color(0xFF5E7FE5),
-    },
-    {
-      'title': 'Q4 Marketing Campaign',
-      'team': 'Marketing Dept',
-      'status': 'PLANNING',
-      'statusColor': const Color(0xFF3B82F6),
-      'statusBg': const Color(0x1A3B82F6),
-      'progress': 0.15,
-      'progressText': '15%',
-      'tasks': '24 Tasks',
-      'deadline': 'Nov 15',
-      'iconBg': const Color(0xFFFFEBEB),
-      'iconColor': const Color(0xFFFF5252),
-    },
-    {
-      'title': 'Web Portal Development',
-      'team': 'Engineering Team',
-      'status': 'ON TRACK',
-      'statusColor': const Color(0xFF13ECC8),
-      'statusBg': const Color(0x2613ECC8),
-      'progress': 0.45,
-      'progressText': '45%',
-      'tasks': '18 Tasks',
-      'deadline': 'Dec 05',
-      'iconBg': const Color(0xFFE2F7ED),
-      'iconColor': const Color(0xFF10B981),
-    },
-    {
-      'title': 'Brand Identity Guidelines',
-      'team': 'Design Team',
-      'status': 'COMPLETED',
-      'statusColor': const Color(0xFF10B981),
-      'statusBg': const Color(0x1A10B981),
-      'progress': 1.0,
-      'progressText': '100%',
-      'tasks': '8 Tasks',
-      'deadline': 'May 15',
-      'iconBg': const Color(0xFFF7EBE2),
-      'iconColor': const Color(0xFFF59E0B),
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeDynamicProjectDeadlines();
-  }
-
-  void _initializeDynamicProjectDeadlines() {
-    final now = DateTime.now();
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    if (_allProjects.length >= 4) {
-      // Project 1 (ON TRACK, e.g. 5 days from now)
-      final date1 = now.add(const Duration(days: 5));
-      _allProjects[0]['deadline'] = '${months[date1.month - 1]} ${date1.day}';
-
-      // Project 2 (PLANNING, e.g. 15 days from now)
-      final date2 = now.add(const Duration(days: 15));
-      _allProjects[1]['deadline'] = '${months[date2.month - 1]} ${date2.day}';
-
-      // Project 3 (ON TRACK, e.g. 20 days from now)
-      final date3 = now.add(const Duration(days: 20));
-      _allProjects[2]['deadline'] = '${months[date3.month - 1]} ${date3.day}';
-
-      // Project 4 (COMPLETED, e.g. 10 days ago)
-      final date4 = now.subtract(const Duration(days: 10));
-      _allProjects[3]['deadline'] = '${months[date4.month - 1]} ${date4.day}';
-    }
-  }
+  // Dynamic Project Data from global state
+  List<Map<String, dynamic>> get _allProjects => AppState.instance.projects;
 
   List<Map<String, dynamic>> get _filteredProjects {
     if (selectedFilter == 'All') {
@@ -167,10 +86,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       context,
                       MaterialPageRoute(builder: (context) => const CreateProjectScreen()),
                     );
-                    if (result != null && result is Map<String, dynamic>) {
-                      setState(() {
-                        _allProjects.insert(0, result);
-                      });
+                    if (result != null) {
+                      setState(() {});
                     }
                   },
                   borderRadius: BorderRadius.circular(16),
@@ -242,10 +159,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       context,
                       MaterialPageRoute(builder: (context) => const JoinProjectScreen()),
                     );
-                    if (result != null && result is Map<String, dynamic>) {
-                      setState(() {
-                        _allProjects.insert(0, result);
-                      });
+                    if (result != null) {
+                      setState(() {});
                     }
                   },
                   borderRadius: BorderRadius.circular(16),
@@ -463,6 +378,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
           setState(() {
             _allProjects.removeWhere((p) => p['title'] == result['title']);
           });
+        } else {
+          setState(() {});
         }
       },
       child: Container(
