@@ -16,7 +16,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   List<Map<String, dynamic>> get _groupedFilteredProjects {
     final List<Map<String, dynamic>> grouped = [];
+    final email = AppState.instance.userEmail.toLowerCase().trim();
     for (var project in AppState.instance.projects) {
+      final creator = (project['creatorEmail'] ?? '').toString().toLowerCase().trim();
+      final joined = project['joinedUsers'] as List<dynamic>? ?? [];
+      final hasAccess = creator == email || joined.any((u) => u.toString().toLowerCase().trim() == email);
+      
+      if (!hasAccess) continue;
+
       final projectName = project['title'] as String;
       final taskList = project['taskList'];
       final List<Map<String, dynamic>> projectTasks = [];

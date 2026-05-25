@@ -185,12 +185,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           return;
                         }
 
-                        // Retrieve the registered credentials from AppState
-                        final registeredEmail = AppState.instance.userEmail.trim();
-                        final registeredPassword = AppState.instance.userPassword;
+                        // Find matching user from registered list
+                        final matchedUser = AppState.instance.users.firstWhere(
+                          (u) => u['email']?.toLowerCase().trim() == email.toLowerCase().trim() && u['password'] == password,
+                          orElse: () => <String, String>{},
+                        );
 
-                        // Check if the inputted email and password match the registered ones
-                        if (email.toLowerCase() != registeredEmail.toLowerCase() || password != registeredPassword) {
+                        if (matchedUser.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Invalid email or password. Please try again.'),
@@ -199,6 +200,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                           return;
                         }
+
+                        // Set currently logged in user info
+                        await AppState.instance.setUserName(matchedUser['name'] ?? '');
+                        await AppState.instance.setUserEmail(matchedUser['email'] ?? '');
+                        await AppState.instance.setUserPassword(matchedUser['password'] ?? '');
+                        await AppState.instance.setUserRole(matchedUser['role'] ?? '');
 
                         if (!mounted) return;
                         Navigator.pushReplacement(

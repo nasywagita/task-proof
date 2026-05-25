@@ -7,7 +7,8 @@ void main() {
 }
 
 class AddTaskScreen extends StatelessWidget {
-  const AddTaskScreen({super.key});
+  final Map<String, dynamic>? project;
+  const AddTaskScreen({super.key, this.project});
 
   @override
   Widget build(BuildContext context) {
@@ -39,13 +40,14 @@ class AddTaskScreen extends StatelessWidget {
         centerTitle: false,
       ),
       bottomNavigationBar: const SharedBottomNavBar(currentIndex: 2),
-      body: const AddTaskPageNeonTech(),
+      body: AddTaskPageNeonTech(project: project),
     );
   }
 }
 
 class AddTaskPageNeonTech extends StatefulWidget {
-  const AddTaskPageNeonTech({super.key});
+  final Map<String, dynamic>? project;
+  const AddTaskPageNeonTech({super.key, this.project});
 
   @override
   State<AddTaskPageNeonTech> createState() => _AddTaskPageNeonTechState();
@@ -59,8 +61,41 @@ class _AddTaskPageNeonTechState extends State<AddTaskPageNeonTech> {
   String? _selectedMember;
   DateTime? _selectedDate;
 
-  // Daftar sampel anggota tim untuk dropdown input
-  final List<String> _teamMembers = ['Ilham', 'Alex', 'Sarah', 'Dewi'];
+  // Dynamic list of project members
+  List<String> get _teamMembers {
+    if (widget.project == null) {
+      return ['Ilham', 'Alex', 'Sarah', 'Dewi'];
+    }
+    
+    final List<String> names = [];
+    
+    // Add creator name
+    final creatorEmail = widget.project!['creatorEmail'];
+    final creatorUser = AppState.instance.users.firstWhere(
+      (u) => u['email']?.toLowerCase().trim() == creatorEmail?.toLowerCase().trim(),
+      orElse: () => <String, String>{},
+    );
+    final creatorName = creatorUser['name'] ?? 'Creator Demo';
+    if (creatorName.isNotEmpty) {
+      names.add(creatorName);
+    }
+    
+    // Add joined members
+    final membersList = widget.project!['teamMembers'] as List<dynamic>? ?? [];
+    for (var m in membersList) {
+      if (m is Map) {
+        final name = m['name']?.toString() ?? '';
+        if (name.isNotEmpty && !names.contains(name)) {
+          names.add(name);
+        }
+      }
+    }
+    
+    if (names.isEmpty) {
+      names.addAll(['Ilham', 'Alex', 'Sarah', 'Dewi']);
+    }
+    return names;
+  }
 
   // Fungsi untuk menampilkan kalender pemilih tanggal (Deadline)
   Future<void> _selectDeadline(BuildContext context) async {

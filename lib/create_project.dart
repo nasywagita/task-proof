@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:task_proof/join_project.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
@@ -350,6 +351,11 @@ class _CreateJoinProjectBodyState extends State<CreateJoinProjectBody> {
                 }
               }
 
+              // Generate unique Join Code
+              final random = math.Random();
+              final joinCodeNumber = 1000 + random.nextInt(9000); // 1000-9999
+              final joinCode = 'TP-$joinCodeNumber';
+
               final newProject = {
                 'title': name,
                 'description': description,
@@ -366,6 +372,18 @@ class _CreateJoinProjectBodyState extends State<CreateJoinProjectBody> {
                 'iconColor': const Color(0xFFFF5252),
                 'isBordered': true,
                 'taskList': <Map<String, dynamic>>[],
+                'joinCode': joinCode,
+                'creatorEmail': AppState.instance.userEmail,
+                'joinedUsers': <String>[],
+                'teamMembers': <Map<String, String>>[],
+                'auditLog': <Map<String, dynamic>>[
+                  {
+                    'title': AppState.instance.userName,
+                    'action': 'created the project',
+                    'time': 'Just now',
+                    'dotColor': const Color(0xFF13ECC8),
+                  }
+                ],
               };
 
               // Add to AppState list at the beginning

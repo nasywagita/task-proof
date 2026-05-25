@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
 import 'package:task_proof/add_progress.dart';
 import 'package:task_proof/task_list.dart';
+import 'package:task_proof/app_state.dart';
 
 void main() {
   runApp(const MyApp());
@@ -51,8 +52,19 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
     _progressHistory.clear();
 
+    if (widget.task['progressHistory'] != null) {
+      final List<dynamic> savedHistory = widget.task['progressHistory'];
+      for (var item in savedHistory) {
+        if (item is Map) {
+          _progressHistory.add(Map<String, dynamic>.from(item));
+        }
+      }
+      return;
+    }
+
+    final List<Map<String, dynamic>> initialHistory = [];
     if (status == 'Pending Review') {
-      _progressHistory.addAll([
+      initialHistory.addAll([
         {
           'id': '1',
           'user': assignee,
@@ -76,7 +88,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         }
       ]);
     } else if (status == 'Completed') {
-      _progressHistory.addAll([
+      initialHistory.addAll([
         {
           'id': '1',
           'user': assignee,
@@ -100,7 +112,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         }
       ]);
     } else if (status == 'In Progress') {
-      _progressHistory.addAll([
+      initialHistory.addAll([
         {
           'id': '1',
           'user': assignee,
@@ -111,7 +123,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         }
       ]);
     } else {
-      _progressHistory.addAll([
+      initialHistory.addAll([
         {
           'id': '1',
           'user': assignee,
@@ -122,6 +134,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         }
       ]);
     }
+
+    widget.task['progressHistory'] = initialHistory;
+    _progressHistory.addAll(initialHistory);
   }
 
   void _handleApprove(Map<String, dynamic> item) {
@@ -129,6 +144,16 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       item['status'] = 'Approved';
       item['canApproveReject'] = false;
       widget.task['status'] = 'Completed';
+
+      if (widget.task['progressHistory'] != null) {
+        final List<dynamic> savedHistory = widget.task['progressHistory'];
+        for (var h in savedHistory) {
+          if (h is Map && h['id'] == item['id']) {
+            h['status'] = 'Approved';
+            h['canApproveReject'] = false;
+          }
+        }
+      }
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -228,11 +253,22 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   return;
                 }
                 Navigator.pop(context);
-                setState(() {
+                 setState(() {
                   item['status'] = 'Rejected';
                   item['rejectionReason'] = reason;
                   item['canApproveReject'] = false;
                   widget.task['status'] = 'To Do';
+
+                  if (widget.task['progressHistory'] != null) {
+                    final List<dynamic> savedHistory = widget.task['progressHistory'];
+                    for (var h in savedHistory) {
+                      if (h is Map && h['id'] == item['id']) {
+                        h['status'] = 'Rejected';
+                        h['rejectionReason'] = reason;
+                        h['canApproveReject'] = false;
+                      }
+                    }
+                  }
                 });
 
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -358,6 +394,15 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final project = AppState.instance.projects.firstWhere(
+      (p) {
+        final taskList = p['taskList'] as List<dynamic>? ?? [];
+        return taskList.any((t) => t['title'] == widget.task['title']);
+      },
+      orElse: () => <String, dynamic>{},
+    );
+    final userRole = ((project['creatorEmail'] ?? '').toString().toLowerCase().trim() == AppState.instance.userEmail.toLowerCase().trim()) ? 'creator' : 'anggota';
+
     return Scaffold(
       backgroundColor: const Color(0xFFF3FBF7),
       //--- CUSTOM APP BAR ---
@@ -446,6 +491,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             onApprove: _handleApprove,
             onReject: _handleReject,
             onOpenLink: _handleOpenLink,
+            userRole: userRole,
           ),
         ],
       ),
@@ -461,16 +507,21 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           );
           if (result != null && result is Map<String, dynamic>) {
             setState(() {
-              _progressHistory.insert(0, {
+              final newLog = {
                 'id': DateTime.now().millisecondsSinceEpoch.toString(),
-                'user': widget.task['assignee'] ?? widget.task['member'] ?? 'Ilham',
+                'user': AppState.instance.userName.isNotEmpty ? AppState.instance.userName : (widget.task['assignee'] ?? widget.task['member'] ?? 'Ilham'),
                 'time': 'Just now',
                 'notes': result['notes'] ?? '',
                 'link': result['link'] ?? '',
-                'linkText': 'Attachment Link',
+                'linkText': (result['link'] != null && result['link'].toString().isNotEmpty) ? 'Attachment Link' : '',
                 'status': 'Pending Review',
                 'canApproveReject': true,
-              });
+              };
+              _progressHistory.insert(0, newLog);
+              if (widget.task['progressHistory'] == null) {
+                widget.task['progressHistory'] = [];
+              }
+              (widget.task['progressHistory'] as List).insert(0, newLog);
               widget.task['status'] = 'Pending Review';
             });
           }
@@ -633,6 +684,7 @@ class ProgressTimelineSection extends StatelessWidget {
   final Function(Map<String, dynamic>) onApprove;
   final Function(Map<String, dynamic>) onReject;
   final Function(String) onOpenLink;
+  final String userRole;
 
   const ProgressTimelineSection({
     super.key,
@@ -640,6 +692,7 @@ class ProgressTimelineSection extends StatelessWidget {
     required this.onApprove,
     required this.onReject,
     required this.onOpenLink,
+    this.userRole = 'creator',
   });
 
   @override
@@ -683,7 +736,7 @@ class ProgressTimelineSection extends StatelessWidget {
           text = const Color(0xFF414947);
         }
 
-        final showButtons = item['canApproveReject'] == true && isPending;
+        final showButtons = item['canApproveReject'] == true && isPending && userRole == 'creator';
 
         return _buildTimelineItem(
           isActive: isPending || isApproved,

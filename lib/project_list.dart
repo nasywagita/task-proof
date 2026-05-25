@@ -16,7 +16,14 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   String selectedFilter = 'All';
 
   // Dynamic Project Data from global state
-  List<Map<String, dynamic>> get _allProjects => AppState.instance.projects;
+  List<Map<String, dynamic>> get _allProjects {
+    final email = AppState.instance.userEmail.toLowerCase().trim();
+    return AppState.instance.projects.where((p) {
+      final creator = (p['creatorEmail'] ?? '').toString().toLowerCase().trim();
+      final joined = p['joinedUsers'] as List<dynamic>? ?? [];
+      return creator == email || joined.any((u) => u.toString().toLowerCase().trim() == email);
+    }).toList();
+  }
 
   List<Map<String, dynamic>> get _filteredProjects {
     if (selectedFilter == 'All') {

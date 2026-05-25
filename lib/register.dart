@@ -220,6 +220,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 return;
                               }
 
+                              // Check if email already registered
+                              final exists = AppState.instance.users.any((u) => u['email']?.toLowerCase().trim() == email.toLowerCase().trim());
+                              if (exists) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Email is already registered! Please log in.'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // Add to registered users master list
+                              AppState.instance.users.add({
+                                'name': name,
+                                'email': email,
+                                'password': password,
+                                'role': isCreatorSelected ? 'Project Creator' : 'Project Member',
+                              });
+
                               await AppState.instance.setUserName(name);
                               await AppState.instance.setUserEmail(email);
                               await AppState.instance.setUserPassword(password);

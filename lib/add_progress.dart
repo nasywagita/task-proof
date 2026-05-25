@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
+import 'package:task_proof/app_state.dart';
 
 class AddProgressScreen extends StatefulWidget {
   const AddProgressScreen({super.key});
@@ -26,7 +27,7 @@ class _AddProgressScreenState extends State<AddProgressScreen> {
         'link': _linkController.text.trim(),
         'notes': _notesController.text.trim(),
         'time': 'Just now',
-        'user': 'Me', // Dynamic name can be added later
+        'user': AppState.instance.userName.isNotEmpty ? AppState.instance.userName : 'Me',
       });
     }
   }

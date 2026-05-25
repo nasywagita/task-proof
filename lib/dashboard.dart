@@ -14,13 +14,18 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  List<Map<String, dynamic>> get _dashboardProjects => AppState.instance.projects;
+  List<Map<String, dynamic>> get _dashboardProjects {
+    final email = AppState.instance.userEmail.toLowerCase().trim();
+    return AppState.instance.projects.where((p) {
+      final creator = (p['creatorEmail'] ?? '').toString().toLowerCase().trim();
+      final joined = p['joinedUsers'] as List<dynamic>? ?? [];
+      return creator == email || joined.any((u) => u.toString().toLowerCase().trim() == email);
+    }).toList();
+  }
 
   String _getNextDeadline() {
     if (_dashboardProjects.isEmpty) {
-      final now = DateTime.now();
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return '${months[now.month - 1]} ${now.day}';
+      return '-';
     }
 
     DateTime? earliest;
@@ -64,9 +69,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return earliestStr;
     }
 
-    final nowTime = DateTime.now();
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${monthNames[nowTime.month - 1]} ${nowTime.day}';
+    return '-';
   }
 
   @override
@@ -199,26 +202,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: ShapeDecoration(
-                              color: const Color(0xFFFFEBEB),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                          if (_dashboardProjects.isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: ShapeDecoration(
+                                color: const Color(0xFFFFEBEB),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'URGENT',
+                                style: TextStyle(
+                                  color: Color(0xFFFF5252),
+                                  fontSize: 12,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.50,
+                                ),
                               ),
                             ),
-                            child: const Text(
-                              'URGENT',
-                              style: TextStyle(
-                                color: Color(0xFFFF5252),
-                                fontSize: 12,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.50,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
+                            const SizedBox(height: 12),
+                          ],
                           const Text(
                             'NEXT DEADLINE',
                             style: TextStyle(

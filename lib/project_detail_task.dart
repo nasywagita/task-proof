@@ -4,6 +4,7 @@ import 'package:task_proof/project_detail_overview.dart';
 import 'package:task_proof/project_detail_timeline.dart' show ProjectDetailTimelineScreen;
 import 'package:task_proof/task_detail.dart';
 import 'package:task_proof/add_task.dart';
+import 'package:task_proof/app_state.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -38,6 +39,7 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userRole = ((widget.project['creatorEmail'] ?? '').toString().toLowerCase().trim() == AppState.instance.userEmail.toLowerCase().trim()) ? 'creator' : 'anggota';
     return Scaffold(
         backgroundColor: const Color(0xFFF3FBF7),
         appBar: AppBar(
@@ -57,66 +59,47 @@ class _ProjectDetailTaskScreenState extends State<ProjectDetailTaskScreen> {
               fontSize: 16,
             ),
           ),
-          actions: [
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Color(0xFF006B58)),
-              onSelected: (value) {
-                if (value == 'delete') {
-                  showDeleteProjectDialog(context, widget.project);
-                }
-              },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                      SizedBox(width: 8),
-                      Text('Delete Project', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
+          actions: [],
           bottom: TaskDetailTabBar(project: widget.project),
         ),
         bottomNavigationBar: const SharedBottomNavBar(currentIndex: 1),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: const Color(0xFF13ECC8),
-          elevation: 4,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add, color: Colors.black),
-          onPressed: () async {
-            // Navigasi ke AddTaskScreen dan menunggu data yang di-pop kembali
-            final result = await Navigator.push(
-              context,
-              SlideFadeRoute(page: const AddTaskScreen()),
-            );
-            
-            // Jika ada data tugas baru yang ditambahkan, masukkan ke list tugas dinamis
-            if (result != null && result is Map<String, dynamic>) {
-              setState(() {
-                if (widget.project['taskList'] == null) {
-                  widget.project['taskList'] = <Map<String, dynamic>>[];
-                }
-                final List<Map<String, dynamic>> taskList = List<Map<String, dynamic>>.from(widget.project['taskList']);
-                taskList.insert(0, {
-                  'title': result['title'] ?? 'New Task',
-                  'deadline': result['deadline'] ?? 'No Deadline',
-                  'status': 'To Do',
-                  'description': result['desc'] ?? result['description'] ?? 'No description provided.',
-                  'assignee': result['member'] ?? result['assignee'] ?? 'Unassigned',
-                });
-                widget.project['taskList'] = taskList;
-                
-                // Update project task count dynamically
-                final int count = taskList.length;
-                widget.project['tasks'] = '$count Task${count == 1 ? "" : "s"}';
-              });
-            }
-          },
-        ),
+        floatingActionButton: (userRole == 'creator')
+            ? FloatingActionButton(
+                backgroundColor: const Color(0xFF13ECC8),
+                elevation: 4,
+                shape: const CircleBorder(),
+                child: const Icon(Icons.add, color: Colors.black),
+                onPressed: () async {
+                  // Navigasi ke AddTaskScreen dan menunggu data yang di-pop kembali
+                  final result = await Navigator.push(
+                    context,
+                    SlideFadeRoute(page: AddTaskScreen(project: widget.project)),
+                  );
+                  
+                  // Jika ada data tugas baru yang ditambahkan, masukkan ke list tugas dinamis
+                  if (result != null && result is Map<String, dynamic>) {
+                    setState(() {
+                      if (widget.project['taskList'] == null) {
+                        widget.project['taskList'] = <Map<String, dynamic>>[];
+                      }
+                      final List<Map<String, dynamic>> taskList = List<Map<String, dynamic>>.from(widget.project['taskList']);
+                      taskList.insert(0, {
+                        'title': result['title'] ?? 'New Task',
+                        'deadline': result['deadline'] ?? 'No Deadline',
+                        'status': 'To Do',
+                        'description': result['desc'] ?? result['description'] ?? 'No description provided.',
+                        'assignee': result['member'] ?? result['assignee'] ?? 'Unassigned',
+                      });
+                      widget.project['taskList'] = taskList;
+                      
+                      // Update project task count dynamically
+                      final int count = taskList.length;
+                      widget.project['tasks'] = '$count Task${count == 1 ? "" : "s"}';
+                    });
+                  }
+                },
+              )
+            : null,
         body: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [

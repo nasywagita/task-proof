@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:task_proof/shared_bottom_nav.dart';
 import 'package:task_proof/project_detail_task.dart';
 import 'package:task_proof/project_detail_timeline.dart';
@@ -53,28 +54,7 @@ class ProjectDetailOverviewScreen extends StatelessWidget {
             fontSize: 16,
           ),
         ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Color(0xFF006B58)),
-            onSelected: (value) {
-              if (value == 'delete') {
-                showDeleteProjectDialog(context, project);
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                    SizedBox(width: 8),
-                    Text('Delete Project', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+        actions: [],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: CustomTabBar(project: project),
@@ -86,11 +66,11 @@ class ProjectDetailOverviewScreen extends StatelessWidget {
         children: [
           ProjectCardHeader(project: project),
           const SizedBox(height: 16),
-          const TeamCardSection(),
+          TeamCardSection(project: project),
           const SizedBox(height: 16),
           ProgressCardSection(project: project),
           const SizedBox(height: 16),
-          const JoinCodeCardSection(),
+          JoinCodeCardSection(project: project),
         ],
       ),
     );
@@ -197,14 +177,15 @@ class ProjectCardHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.delete_outline, color: Color(0xFF006B58)),
-                onPressed: () {
-                  showDeleteProjectDialog(context, project);
-                },
-              ),
+              if (((project['creatorEmail'] ?? '').toString().toLowerCase().trim() == AppState.instance.userEmail.toLowerCase().trim()))
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.delete_outline, color: Color(0xFF006B58)),
+                  onPressed: () {
+                    showDeleteProjectDialog(context, project);
+                  },
+                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -348,32 +329,24 @@ void showDeleteProjectDialog(BuildContext context, Map<String, dynamic> project)
 
 //--- SUB-WIDGET 3: SECTION TEAM (AMBIL AVATAR AMAN) ---
 class TeamCardSection extends StatefulWidget {
-  const TeamCardSection({super.key});
+  final Map<String, dynamic> project;
+
+  const TeamCardSection({super.key, required this.project});
 
   @override
   State<TeamCardSection> createState() => _TeamCardSectionState();
 }
 
 class _TeamCardSectionState extends State<TeamCardSection> {
-  final List<Map<String, String>> _teamMembers = [
-    {
-      'name': 'Alex Johnson',
-      'role': 'Product Designer',
-      'avatar': 'https://i.pravatar.cc/100?img=1',
-    },
-    {
-      'name': 'Ilham Ramadhan',
-      'role': 'Mobile Developer',
-      'avatar': 'https://i.pravatar.cc/100?img=2',
-    },
-    {
-      'name': 'Sarah Smith',
-      'role': 'QA Engineer',
-      'avatar': 'https://i.pravatar.cc/100?img=3',
-    },
-  ];
+  List<Map<String, String>> get _teamMembers {
+    if (widget.project['teamMembers'] == null) {
+      widget.project['teamMembers'] = <Map<String, String>>[];
+    }
+    return widget.project['teamMembers'] as List<Map<String, String>>;
+  }
 
   void _showManageTeamBottomSheet() {
+    final userRole = ((widget.project['creatorEmail'] ?? '').toString().toLowerCase().trim() == AppState.instance.userEmail.toLowerCase().trim()) ? 'creator' : 'anggota';
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -382,9 +355,6 @@ class _TeamCardSectionState extends State<TeamCardSection> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        final nameController = TextEditingController();
-        final roleController = TextEditingController();
-
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Padding(
@@ -409,9 +379,11 @@ class _TeamCardSectionState extends State<TeamCardSection> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Manage Team',
-                    style: TextStyle(
+                  Text(
+                    userRole == 'creator'
+                        ? 'Manage Team'
+                        : 'Team Members',
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF161D1B),
@@ -439,10 +411,14 @@ class _TeamCardSectionState extends State<TeamCardSection> {
                                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                                 child: Row(
                                   children: [
-                                    CircleAvatar(
+                                    const CircleAvatar(
                                       radius: 18,
-                                      backgroundImage: NetworkImage(member['avatar'] ?? 'https://i.pravatar.cc/100?img=99'),
-                                      backgroundColor: const Color(0xFFEDF6F1),
+                                      backgroundColor: Color(0xFFCCE8DF),
+                                      child: Icon(
+                                        Icons.person_rounded,
+                                        size: 18,
+                                        color: Color(0xFF006B58),
+                                      ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
@@ -467,98 +443,21 @@ class _TeamCardSectionState extends State<TeamCardSection> {
                                         ],
                                       ),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                                      onPressed: () {
-                                        setSheetState(() {
-                                          _teamMembers.removeAt(index);
-                                        });
-                                        setState(() {});
-                                      },
-                                    ),
+                                    if (userRole == 'creator')
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                        onPressed: () {
+                                          setSheetState(() {
+                                            _teamMembers.removeAt(index);
+                                          });
+                                          setState(() {});
+                                        },
+                                      ),
                                   ],
                                 ),
                               );
                             },
                           ),
-                  ),
-                  const Divider(height: 32),
-                  const Text(
-                    'Add New Member',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF161D1B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      hintText: 'e.g. John Doe',
-                      labelText: 'Full Name',
-                      labelStyle: const TextStyle(color: Color(0xFF006B58)),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF13ECC8), width: 1.5),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: roleController,
-                    decoration: InputDecoration(
-                      hintText: 'e.g. Developer',
-                      labelText: 'Role',
-                      labelStyle: const TextStyle(color: Color(0xFF006B58)),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF13ECC8), width: 1.5),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      final name = nameController.text.trim();
-                      final role = roleController.text.trim();
-                      if (name.isEmpty || role.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please fill all fields')),
-                        );
-                        return;
-                      }
-                      
-                      final randomId = (_teamMembers.length + 1) * 3 % 70 + 1;
-                      
-                      setSheetState(() {
-                        _teamMembers.add({
-                          'name': name,
-                          'role': role,
-                          'avatar': 'https://i.pravatar.cc/100?img=$randomId',
-                        });
-                      });
-                      setState(() {});
-                      
-                      nameController.clear();
-                      roleController.clear();
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('$name added to the team!'),
-                          backgroundColor: const Color(0xFF006B58),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF13ECC8),
-                      foregroundColor: const Color(0xFF006655),
-                      minimumSize: const Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Add Member', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -571,6 +470,7 @@ class _TeamCardSectionState extends State<TeamCardSection> {
 
   @override
   Widget build(BuildContext context) {
+    final userRole = ((widget.project['creatorEmail'] ?? '').toString().toLowerCase().trim() == AppState.instance.userEmail.toLowerCase().trim()) ? 'creator' : 'anggota';
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -602,30 +502,33 @@ class _TeamCardSectionState extends State<TeamCardSection> {
               Row(
                 children: [
                   ..._teamMembers.map((m) => _avatar(m['avatar'] ?? '')),
-                  GestureDetector(
-                    onTap: _showManageTeamBottomSheet,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3FBF7),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFBFC9C5)),
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        size: 16,
-                        color: Color(0xFF006B58),
+                  if (userRole == 'creator')
+                    GestureDetector(
+                      onTap: _showManageTeamBottomSheet,
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3FBF7),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFBFC9C5)),
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          size: 16,
+                          color: Color(0xFF006B58),
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               TextButton(
                 onPressed: _showManageTeamBottomSheet,
-                child: const Text(
-                  'Manage Team',
-                  style: TextStyle(
+                child: Text(
+                  userRole == 'creator'
+                      ? 'Manage Team'
+                      : 'View Team',
+                  style: const TextStyle(
                     color: Color(0xFF006B58),
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
@@ -640,12 +543,16 @@ class _TeamCardSectionState extends State<TeamCardSection> {
   }
 
   Widget _avatar(String url) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 6.0),
+    return const Padding(
+      padding: EdgeInsets.only(right: 6.0),
       child: CircleAvatar(
         radius: 16,
-        backgroundImage: NetworkImage(url),
-        backgroundColor: const Color(0xFFEDF6F1),
+        backgroundColor: Color(0xFFCCE8DF),
+        child: Icon(
+          Icons.person_rounded,
+          size: 16,
+          color: Color(0xFF006B58),
+        ),
       ),
     );
   }
@@ -659,6 +566,26 @@ class ProgressCardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Dynamic calculation of progress
+    final taskList = project['taskList'] as List<dynamic>? ?? [];
+    final totalTasks = taskList.length;
+    int completedTasks = 0;
+
+    for (var task in taskList) {
+      final status = task['status']?.toString().toLowerCase() ?? '';
+      if (status == 'approved' || status == 'completed') {
+        completedTasks++;
+      }
+    }
+
+    final double progressValue = totalTasks > 0 ? (completedTasks / totalTasks) : 0.0;
+    final int progressPercent = (progressValue * 100).round();
+    final remainingTasks = totalTasks - completedTasks;
+
+    // Update project state with new progress
+    project['progress'] = progressValue;
+    project['progressText'] = '$progressPercent%';
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -692,7 +619,7 @@ class ProgressCardSection extends StatelessWidget {
                   width: 120,
                   height: 120,
                   child: CircularProgressIndicator(
-                    value: project['progress'] as double? ?? 0.0,
+                    value: progressValue,
                     strokeWidth: 12,
                     backgroundColor: const Color(0xFFE8EFEC),
                     color: const Color(0xFF006B58),
@@ -700,7 +627,7 @@ class ProgressCardSection extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  project['progressText'] ?? '0%',
+                  '$progressPercent%',
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -711,20 +638,20 @@ class ProgressCardSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '12 Completed',
-                style: TextStyle(
+                '$completedTasks Completed',
+                style: const TextStyle(
                   color: Color(0xFF414947),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
-                '4 Remaining',
-                style: TextStyle(
+                '$remainingTasks Remaining',
+                style: const TextStyle(
                   color: Color(0xFF414947),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -740,10 +667,13 @@ class ProgressCardSection extends StatelessWidget {
 
 //--- SUB-WIDGET 5: JOIN CODE BANNER ---
 class JoinCodeCardSection extends StatelessWidget {
-  const JoinCodeCardSection({super.key});
+  final Map<String, dynamic> project;
+
+  const JoinCodeCardSection({super.key, required this.project});
 
   @override
   Widget build(BuildContext context) {
+    final joinCode = project['joinCode'] ?? 'TP-0000';
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -777,9 +707,9 @@ class JoinCodeCardSection extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'TP-9821',
-                  style: TextStyle(
+                Text(
+                  joinCode,
+                  style: const TextStyle(
                     color: Color(0xFF3CFFDF),
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
@@ -788,7 +718,15 @@ class JoinCodeCardSection extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.copy, color: Colors.white),
-                  onPressed: () {},
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: joinCode));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Join code $joinCode copied to clipboard!'),
+                        backgroundColor: const Color(0xFF006B58),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

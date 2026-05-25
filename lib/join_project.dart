@@ -219,47 +219,140 @@ class _JoinProjectScreenState extends State<JoinProjectScreen> {
               child: ElevatedButton.icon(
                 onPressed: () {
                   final code = _codeController.text.trim();
-                  if (code.length != 6) {
+                  if (code.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Please enter a valid 6-digit project code'),
+                        content: Text('Please enter a project code'),
                         backgroundColor: Colors.red,
                       ),
                     );
                     return;
                   }
 
-                  final joinedProject = {
-                    'title': 'Project $code',
-                    'description': 'Collaborating on Project $code.',
-                    'due': 'Dec 25, 2026',
-                    'team': 'Collaborator Team',
-                    'status': 'ON TRACK',
-                    'statusColor': const Color(0xFF13ECC8),
-                    'statusBg': const Color(0x2613ECC8),
-                    'progress': 0.1,
-                    'progressText': '10%',
-                    'tasks': '0 Tasks',
-                    'deadline': 'Dec 25',
-                    'iconBg': const Color(0xFFE2F7ED),
-                    'iconColor': const Color(0xFF10B981),
-                    'isBordered': false,
-                    'taskList': <Map<String, dynamic>>[],
-                  };
+                  // Find if project already exists in global AppState
+                  Map<String, dynamic>? existingProject;
+                  
+                  // Debug logging to help identify any issues in the terminal
+                  print("--- DEBUG JOIN ---");
+                  print("Master projects count: ${AppState.instance.projects.length}");
+                  for (var p in AppState.instance.projects) {
+                    print("Available Project: '${p['title']}' | Join Code: '${p['joinCode']}' | Creator: '${p['creatorEmail']}'");
+                  }
+                  print("User input code to match: '$code'");
+                  
+                  for (var project in AppState.instance.projects) {
+                    // Normalize both codes by stripping spaces, dashes, and 'TP'
+                    final normalizedJoin = (project['joinCode'] ?? '').toString().toUpperCase().replaceAll(' ', '').replaceAll('-', '').replaceAll('TP', '');
+                    final normalizedSearch = code.toUpperCase().replaceAll(' ', '').replaceAll('-', '').replaceAll('TP', '');
+                    
+                    print("Comparing project joinCode '$normalizedJoin' with searchCode '$normalizedSearch'");
+                    
+                    if (normalizedJoin.isNotEmpty && normalizedSearch.isNotEmpty && 
+                        (normalizedJoin == normalizedSearch || 
+                         normalizedJoin.contains(normalizedSearch) || 
+                         normalizedSearch.contains(normalizedJoin))) {
+                      existingProject = project;
+                      print("MATCH FOUND! Project: '${project['title']}'");
+                      break;
+                    }
+                  }
 
-                  // Add to AppState list at the beginning
-                  AppState.instance.projects.insert(0, joinedProject);
+                  if (existingProject != null) {
+                    // Add user to joinedUsers list in existing project
+                    existingProject['joinedUsers'] ??= <String>[];
+                    final joinedList = List<String>.from(existingProject['joinedUsers']);
+                    if (!joinedList.contains(AppState.instance.userEmail)) {
+                      joinedList.add(AppState.instance.userEmail);
+                      existingProject['joinedUsers'] = joinedList;
+                    }
 
-                  // Show success SnackBar
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Joined Project $code successfully!'),
-                      backgroundColor: const Color(0xFF006B59),
-                    ),
-                  );
+                    if (existingProject['teamMembers'] == null) {
+                      existingProject['teamMembers'] = <Map<String, String>>[];
+                    }
+                    final teamList = List<Map<String, String>>.from(existingProject['teamMembers']);
+                    final alreadyMember = teamList.any((m) => m['name'] == AppState.instance.userName);
+                    if (!alreadyMember) {
+                      teamList.add({
+                        'name': AppState.instance.userName,
+                        'role': 'Anggota',
+                        'avatar': 'https://i.pravatar.cc/100?img=5',
+                      });
+                      existingProject['teamMembers'] = teamList;
 
-                  // Pop and return the project
-                  Navigator.pop(context, joinedProject);
+                      // Add to auditLog
+                      if (existingProject['auditLog'] == null) {
+                        existingProject['auditLog'] = <Map<String, dynamic>>[];
+                      }
+                      final auditList = List<Map<String, dynamic>>.from(existingProject['auditLog']);
+                      auditList.insert(0, {
+                        'title': AppState.instance.userName,
+                        'action': 'joined the project',
+                        'time': 'Just now',
+                        'dotColor': const Color(0xFF10B981),
+                      });
+                      existingProject['auditLog'] = auditList;
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Joined Project "${existingProject['title']}" successfully!'),
+                        backgroundColor: const Color(0xFF006B59),
+                      ),
+                    );
+                    Navigator.pop(context, existingProject);
+                  } else {
+                    // Create fallback project with role 'anggota'
+                    final normalizedCode = code.startsWith('TP-') ? code : 'TP-$code';
+                    final joinedProject = {
+                      'title': 'Project $code',
+                      'description': 'Collaborating on Project $code.',
+                      'due': 'Dec 25, 2026',
+                      'team': 'Collaborator Team',
+                      'status': 'ON TRACK',
+                      'statusColor': const Color(0xFF13ECC8),
+                      'statusBg': const Color(0x2613ECC8),
+                      'progress': 0.0,
+                      'progressText': '0%',
+                      'tasks': '0 Tasks',
+                      'deadline': 'Dec 25',
+                      'iconBg': const Color(0xFFE2F7ED),
+                      'iconColor': const Color(0xFF10B981),
+                      'isBordered': false,
+                      'taskList': <Map<String, dynamic>>[],
+                      'joinCode': normalizedCode,
+                      'creatorEmail': 'creator_demo@company.com',
+                      'joinedUsers': <String>[AppState.instance.userEmail],
+                      'teamMembers': <Map<String, String>>[
+                        {
+                          'name': AppState.instance.userName,
+                          'role': 'Anggota',
+                          'avatar': 'https://i.pravatar.cc/100?img=5',
+                        }
+                      ],
+                      'auditLog': <Map<String, dynamic>>[
+                        {
+                          'title': AppState.instance.userName,
+                          'action': 'joined the project',
+                          'time': 'Just now',
+                          'dotColor': const Color(0xFF10B981),
+                        }
+                      ],
+                    };
+
+                    // Add to AppState list at the beginning
+                    AppState.instance.projects.insert(0, joinedProject);
+
+                    // Show success SnackBar
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Joined Project $code successfully!'),
+                        backgroundColor: const Color(0xFF006B58),
+                      ),
+                    );
+
+                    // Pop and return the project
+                    Navigator.pop(context, joinedProject);
+                  }
                 },
                 icon: const Icon(Icons.login, color: Color(0xFF006655)),
                 label: const Text(

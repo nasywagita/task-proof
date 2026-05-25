@@ -51,28 +51,7 @@ class ProjectDetailTimelineScreen extends StatelessWidget {
           ),
         ),
 
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Color(0xFF006B58)),
-            onSelected: (value) {
-              if (value == 'delete') {
-                showDeleteProjectDialog(context, project);
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                    SizedBox(width: 8),
-                    Text('Delete Project', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+        actions: [],
 
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
@@ -123,32 +102,18 @@ class ProjectDetailTimelineScreen extends StatelessWidget {
                 ),
 
                 Column(
-                  children: [
-                    _buildTimelineItem(
-                      title: 'Ilham',
-                      action: 'uploaded progress',
-                      time: 'Just now',
-                      dotColor: const Color(0xFF13ECC8),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    _buildTimelineItem(
-                      title: 'Alex',
-                      action: 'created UI Components',
-                      time: '2 hours ago',
-                      dotColor: const Color(0xFFE1E9E5),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    _buildTimelineItem(
-                      title: 'Sarah',
-                      action: 'joined the project',
-                      time: 'Yesterday at 4:30 PM',
-                      dotColor: const Color(0xFF707975),
-                    ),
-                  ],
+                  children: (project['auditLog'] as List<dynamic>? ?? []).map((log) {
+                    final isLast = log == (project['auditLog'] as List).last;
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: isLast ? 0 : 24.0),
+                      child: _buildTimelineItem(
+                        title: log['title'] ?? 'Unknown',
+                        action: log['action'] ?? '',
+                        time: log['time'] ?? '',
+                        dotColor: log['dotColor'] ?? const Color(0xFF13ECC8),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
             ),
